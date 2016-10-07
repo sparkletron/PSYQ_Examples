@@ -9,7 +9,6 @@ PSX_OBJECTS = $(SOURCES:.c=.obj)
 CPE = $(PSX_EXEC:.exe=.cpe)
 SYM = $(PSX_EXEC:.exe=.sym)
 MAP = $(PSX_EXEC:.exe=.map)
-DOSEMU = echo 'D:\r cd "$(CURDIR:/%=%)/"\r $(PSX_CPE2X) $(CPE)\r exitemu\r' | dosemu -dumb
 
 all: PSX_BUILD
 	

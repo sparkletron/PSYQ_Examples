@@ -19,7 +19,7 @@ echo "Generating licensed ISO file"
 
 stripisowin.exe s 2352 /tmp/data/cdrom/TEXTURE.IMG /tmp/data/cdrom/TEXTURE.ISO
 
-PSXLICENSE.exe /eu /i /tmp/data/cdrom/TEXTURE.ISO
+PSXLICENSE.exe /us /i /tmp/data/cdrom/TEXTURE.ISO
 
 echo "Moving ISO to bin_psx directory"
 
