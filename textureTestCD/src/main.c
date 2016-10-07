@@ -46,11 +46,11 @@ int main()
 	
 	if(DsSearchFile(&fileInfo, "\\TIM\\YAKKO.TIM;1") <= 0)
 	{
-	  printf("\nFILE READ FAILED\n");
+	  printf("\nFILE SEARCH FAILED\n");
 	}
 	else
 	{
-	  printf("\nFILE READ SUCCESS\n");
+	  printf("\nFILE SEARCH SUCCESS\n");
 	}
 	
 	sizeSectors = (fileInfo.size + 2047) / 2048;
