@@ -1,0 +1,71 @@
+Define LicensePath d:\tmp\LCNSFILE\
+Define LicenseFile licensee.dat
+
+Disc CDROMXA_PSX ;the disk format
+
+	CatalogNumber 0000000000000
+
+	LeadIn XA ;lead in track (track 0)
+		Empty 300 ;defines the lead in size (min 150)
+		PostGap 150 ;required gap at end of the lead in
+	EndTrack ;end of the lead in track
+
+	Track XA ;start of the XA (data) track
+
+		Pause 150 ;required pause in first track after the lead in
+
+		Volume ISO9660 ;define ISO 9660 volume
+			
+			SystemArea [LicensePath][LicenseFile]
+			
+			PrimaryVolume ;start point of primary volume
+				SystemIdentifier "PLAYSTATION" ;required indetifier (do not change)
+				VolumeIdentifier "TEXTURE" ;app specific identifiers (changeable)
+				VolumeSetIdentifier "TEXTURE"
+				PublisherIdentifier "SCEA"
+				DataPreparerIdentifier "SONY"
+				ApplicationIdentifier "PLAYSTATION"
+				LPath ;path tables as specified for PlayStation
+				OptionalLpath
+				MPath
+				OptionalMpath
+
+				Hierarchy ;start point of root directory definition
+
+					XAFileAttributes  Form1 Audio
+					XAVideoAttributes ApplicationSpecific
+					XAAudioAttributes ADPCM_C Stereo ;you can also add 'Emphasis_On' before Stereo
+					
+					Directory TIM
+					  File YAKKO.TIM
+					    XAFileAttributes Form1 Data
+					    Source d:\tmp\data\TIM\YAKKO.TIM
+					  EndFile
+					EndDirectory
+
+					File SYSTEM.CNF
+						XAFileAttributes Form1 Data ;set the attribute to form 1
+						Source d:\tmp\data\cdrom\SYSTEM.CNF ;where the file above can be found
+					EndFile
+
+					File MAIN.exe
+						XAFileAttributes Form1 Data
+						Source d:\tmp\data\MAIN.exe
+					EndFile
+
+				EndHierarchy ;ends the root directory definition
+
+			EndPrimaryVolume ;ends the primary volume definition 
+
+		EndVolume ;ends the ISO 9660 definition
+
+		Empty 300
+		PostGap 150 ;required to change the track type
+	
+	EndTrack ;ends the track definition (end of the XA track)
+
+	LeadOut XA ;note that the leadout track must be the same data type as the last track (IE: AUDIO, XA or MODE1)
+		Empty 150
+	EndTrack
+
+EndDisc
