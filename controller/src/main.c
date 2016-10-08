@@ -17,7 +17,6 @@ u_long __stacksize = 0x00004000; // force 16 kilobytes of stack
 void graphics();
 void display(POLY_F4 *f4);
 
-
 static u_char g_pad[2][34];
 
 // actual structure of the data
@@ -177,15 +176,17 @@ void graphics()
 	switch(*(char *)0xbfc7ff52=='E')
 	{
 		case 'E':
-			SetVideoMode(1); 
+			SetVideoMode(MODE_PAL); 
 			break;
 		default:
-			SetVideoMode(0); 
+			SetVideoMode(MODE_NTSC); 
 			break;	
 	}
 	
 	GsInitGraph(SCREEN_WIDTH, SCREEN_HEIGHT, GsINTER|GsOFSGPU, 1, 0); // set the graphics mode resolutions. You may also try using 'GsNONINTER' (read LIBOVR46.PDF in PSYQ/DOCS for detailed information)
 	GsDefDispBuff(0, 0, 0, SCREEN_HEIGHT); // set the top left coordinates of the two buffers in video memory
+
+	
 }
 
 

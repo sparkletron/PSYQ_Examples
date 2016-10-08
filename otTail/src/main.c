@@ -18,7 +18,7 @@ void graphics();
 void display();
 void initOTwPrim(POLY_F4 *prim, int len);
 
-unsigned long g_ot[256];
+unsigned long g_ot[6];
 
 struct
 {
@@ -81,7 +81,8 @@ int main()
 {
   POLY_F4 primArray[6];
   int prevTime = 0;
-
+  int primitive = 0;
+  
   graphics(); // setup the graphics (seen below)
   FntLoad(960, 256); // load the font from the BIOS into VRAM/SGRAM
   SetDumpFnt(FntOpen(5, 20, 320, 240, 0, 512)); // screen X,Y | max text length X,Y | autmatic background clear 0,1 | max characters
@@ -99,52 +100,63 @@ int main()
     {
       if(prevTime == 0 || ((VSync(-1) - prevTime) > 60))
       {
-	primArray[3].r0 = rand() % 256;
-	primArray[3].g0 = rand() % 256;
-	primArray[3].b0 = rand() % 256;
+	primArray[primitive].r0 = rand() % 256;
+	primArray[primitive].g0 = rand() % 256;
+	primArray[primitive].b0 = rand() % 256;
+	prevTime = VSync(-1);
+      }
+    }
+    else if(g_pad[0].fourth.bit.circle == 0)
+    {
+      if(prevTime == 0 || ((VSync(-1) - prevTime) > 60))
+      {
+	primitive = (primitive + 1) % 6;
 	prevTime = VSync(-1);
       }
     }
     else if(g_pad[0].third.bit.up == 0)
     {
-      if(primArray[3].y0 > 0)
+      printf("\nUp: %d\n", primArray[primitive].y0);
+      if(primArray[primitive].y0 > 0)
       {
-	primArray[3].y0 -= 1;
-	primArray[3].y1 -= 1;
-	primArray[3].y2 -= 1;
-	primArray[3].y3 -= 1;
+	primArray[primitive].y0 -= 1;
+	primArray[primitive].y1 -= 1;
+	primArray[primitive].y2 -= 1;
+	primArray[primitive].y3 -= 1;
       }
     }
     else if(g_pad[0].third.bit.right == 0)
     {
-
-      if(primArray[3].x1 < SCREEN_WIDTH)
+      printf("\nRight %d\n", primArray[primitive].x1);
+      if(primArray[primitive].x1 < SCREEN_WIDTH)
       {
-	primArray[3].x0 += 1;
-	primArray[3].x1 += 1;
-	primArray[3].x2 += 1;
-	primArray[3].x3 += 1;
+	primArray[primitive].x0 += 1;
+	primArray[primitive].x1 += 1;
+	primArray[primitive].x2 += 1;
+	primArray[primitive].x3 += 1;
       }
 
     }
     else if(g_pad[0].third.bit.down == 0)
     {
-      if(primArray[3].y2 < SCREEN_HEIGHT)
+      printf("\nDown %d\n", primArray[primitive].y2);
+      if(primArray[primitive].y2 < SCREEN_HEIGHT)
       {
-	primArray[3].y0 += 1;
-	primArray[3].y1 += 1;
-	primArray[3].y2 += 1;
-	primArray[3].y3 += 1;
+	primArray[primitive].y0 += 1;
+	primArray[primitive].y1 += 1;
+	primArray[primitive].y2 += 1;
+	primArray[primitive].y3 += 1;
       }
     }
     else if(g_pad[0].third.bit.left == 0)
     {
-      if(primArray[3].x0 > 0)
+      printf("\nLeft %d\n", primArray[primitive].x0);
+      if(primArray[primitive].x0 > 0)
       {
-	primArray[3].x0 -= 1;
-	primArray[3].x1 -= 1;
-	primArray[3].x2 -= 1;
-	primArray[3].x3 -= 1;
+	primArray[primitive].x0 -= 1;
+	primArray[primitive].x1 -= 1;
+	primArray[primitive].x2 -= 1;
+	primArray[primitive].x3 -= 1;
       }
 
     }
@@ -191,7 +203,7 @@ void initOTwPrim(POLY_F4 *prim, int len)
   {
     SetPolyF4(&prim[index]);
     setRGB0(&prim[index], rand() % 256, 127, rand() % 256);
-    setXY4(&prim[index], 0, 0, 120 / index, 0, 0, 120 / index, 120 / index, 120 / index);
+    setXY4(&prim[index], 0, 0, 120 / (index + 1), 0, 0, 120 / (index + 1), 120 / (index + 1), 120 / (index + 1));
     AddPrim(&g_ot[index], &prim[index]);
   }
 }
