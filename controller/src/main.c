@@ -20,46 +20,63 @@ void display(POLY_F4 *f4);
 
 static u_char g_pad[2][34];
 
-struct
-{
-	u_char status;
-	u_char type:4;
-	u_char recvSize:4;
-	
-	union
-	{
-		struct
-		{
-			u_char left:1;
-			u_char down:1;
-			u_char right:1;
-			u_char up:1;
-			u_char start:1;
-			u_char NA1:1;
-			u_char NA2:1;
-			u_char select:1;
-		} bit;
-		u_char byte;
-		
-	}first;
-	
-	union
-	{
-		struct
-		{
-			u_char square:1;
-			u_char ex:1;
-			u_char circle:1;
-			u_char triangle:1;
-			u_char R1:1;
-			u_char L1:1;
-			u_char R2:1;
-			u_char L2:1;
-		} bit;
-		u_char byte;
-		
-	}second;
-} g_pad0;
+// actual structure of the data
+// struct
+// {
+//   struct
+//   {
+//     struct
+//     {
+//       u_char status:8;
+//     } byte;
+//     
+//   } first;
+//   
+//   union
+//   {
+//     struct
+//     {
+//       u_char recvSize:4;
+//       u_char type:4;
+//     } nibble;
+//     u_char byte:8;
+//     
+//   } second;
+//   
+//   union
+//   {
+//     struct
+//     {
+//       u_char select:1;
+//       u_char NA2:1;
+//       u_char NA1:1;
+//       u_char start:1;
+//       u_char up:1;
+//       u_char right:1;
+//       u_char down:1;
+//       u_char left:1;
+//     } bit;
+//     u_char byte:8;
+// 	  
+//   } third;
+//   
+//   union
+//   {
+//     struct
+//     {
+//       u_char L2:1;
+//       u_char R2:1;
+//       u_char L1:1;
+//       u_char R1:1;
+//       u_char triangle:1;
+//       u_char circle:1;
+//       u_char ex:1;
+//       u_char square:1;
+//     } bit;
+//     u_char byte:8;
+// 	  
+//   } fourth;
+// } g_pad[2];
 
 int main() 
 {
