@@ -80,8 +80,7 @@ Basic Graphics For the PlayStation, requires more setup, but its ordering tables
 
 #### Info
 
-* Primitives are drawn from the highest index down to 0 first.
-  * Meaning if you setup an array of 6, your 6th element will always be the first that is drawn (next one will be drawn on top and so on).
+* Primitives are drawn from the first to last, 0 to array size.
 * Z axis sorting is available, but I haven't taken a hard look at it yet.
 
 ### Primitives
