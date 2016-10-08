@@ -4,21 +4,21 @@
 #include <stdlib.h>
 #include <libgte.h>
 #include <libgpu.h>
-#include <libgs.h>
 #include <libpad.h>
-//#include <libetc.h>
+#include <libetc.h>
 
 #define SCREEN_WIDTH  320 // screen width
 #define	SCREEN_HEIGHT 240 // screen height
-
+#define OT_SIZE       6 //size of ordering table
+#define DUB_BUFFER    2
 u_long __ramsize   = 0x00200000; // force 2 megabytes of RAM
 u_long __stacksize = 0x00004000; // force 16 kilobytes of stack
 
-void graphics();
-void display();
-void initOTwPrim(POLY_F4 *prim, int len);
-
-unsigned long g_ot[6];
+struct s_environment{
+  unsigned long ot[OT_SIZE];
+  DISPENV disp;
+  DRAWENV draw;
+};
 
 struct
 {
@@ -77,22 +77,27 @@ struct
   } fourth;
 } g_pad[2];
 
+void graphics(struct s_environment *p_env);
+void display(struct s_environment *p_env);
+void initEnv(struct s_environment *p_env, int numBuf, POLY_F4 *prim, int len);
+
 int main() 
 {
-  POLY_F4 primArray[6];
+  POLY_F4 primArray[OT_SIZE];
   int prevTime = 0;
   int primitive = 0;
   
-  graphics(); // setup the graphics (seen below)
+  struct s_environment environment[DUB_BUFFER];
+  
+  graphics(environment); // setup the graphics (seen below)
+  
   FntLoad(960, 256); // load the font from the BIOS into VRAM/SGRAM
   SetDumpFnt(FntOpen(5, 20, 320, 240, 0, 512)); // screen X,Y | max text length X,Y | autmatic background clear 0,1 | max characters
-  
-  ClearOTag(g_ot, 6);
 
   PadInitDirect((u_char *)&g_pad[0], (u_char *)&g_pad[1]);
   PadStartCom();
 
-  initOTwPrim(primArray, 6);
+  initEnv(environment, DUB_BUFFER, primArray, OT_SIZE);
 
   while (1) // draw and display forever
   {
@@ -110,7 +115,7 @@ int main()
     {
       if(prevTime == 0 || ((VSync(-1) - prevTime) > 60))
       {
-	primitive = (primitive + 1) % 6;
+	primitive = (primitive + 1) % OT_SIZE;
 	prevTime = VSync(-1);
       }
     }
@@ -161,49 +166,79 @@ int main()
 
     }
 
-    display();
+    display(environment);
   }
 
   return 0;
 }
 
-void graphics()
+void graphics(struct s_environment *p_env)
 {
   // within the BIOS, if the address 0xBFC7FF52 equals 'E', set it as PAL (1). Otherwise, set it as NTSC (0)
   switch(*(char *)0xbfc7ff52=='E')
   {
-	  case 'E':
-		  SetVideoMode(1); 
-		  break;
-	  default:
-		  SetVideoMode(0); 
-		  break;	
+    case 'E':
+      SetVideoMode(MODE_PAL); 
+      break;
+    default:
+      SetVideoMode(MODE_NTSC); 
+      break;	
   }
-
-  GsInitGraph(SCREEN_WIDTH, SCREEN_HEIGHT, GsINTER|GsOFSGPU, 1, 0); // set the graphics mode resolutions. You may also try using 'GsNONINTER' (read LIBOVR46.PDF in PSYQ/DOCS for detailed information)
-  GsDefDispBuff(0, 0, 0, SCREEN_HEIGHT); // set the top left coordinates of the two buffers in video memory
+  
+  ResetGraph(0);
+  
+  SetDefDispEnv(&p_env[0].disp, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+  SetDefDispEnv(&p_env[1].disp, 0, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
+  SetDefDrawEnv(&p_env[0].draw, 0, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
+  SetDefDrawEnv(&p_env[1].draw, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+  
+  p_env[0].draw.isbg = 1;
+  p_env[0].draw.r0 = 0;
+  p_env[0].draw.g0 = 0;
+  p_env[0].draw.b0 = 0;
+  
+  p_env[1].draw.isbg = 1;
+  p_env[1].draw.r0 = 0;
+  p_env[1].draw.g0 = 0;
+  p_env[1].draw.b0 = 0;
+  
+  SetDispMask(1); 
 }
 
 
-void display()
+void display(struct s_environment *p_env)
 {
-  GsClearDispArea(0,0,0);
-  DrawOTag(g_ot);
+  static int currBuff = 0;
+
+  DrawSync(0);
+  VSync(0);
+  currBuff = (currBuff + 1) % DUB_BUFFER;
+  PutDrawEnv(&p_env[currBuff].draw);
+  PutDispEnv(&p_env[currBuff].disp);
+  DrawOTag(p_env[currBuff].ot);
   FntPrint("Ordering Table Example");
   FntFlush(-1);
-  DrawSync(0); // wait for all drawing to finish
-  VSync(0); // wait for v_blank interrupt
-  GsSwapDispBuff(); // flip the double buffers
 }
 
-void initOTwPrim(POLY_F4 *prim, int len)
-{
+void initEnv(struct s_environment *p_env, int numBuf, POLY_F4 *prim, int len)
+{ 
   int index;
+  
+  for(index = 0; index < numBuf; index++)
+  {
+      ClearOTag(p_env[index].ot, len);
+  }
+  
   for(index = 0; index < len; index++)
   {
     SetPolyF4(&prim[index]);
-    setRGB0(&prim[index], rand() % 256, 127, rand() % 256);
-    setXY4(&prim[index], 0, 0, 120 / (index + 1), 0, 0, 120 / (index + 1), 120 / (index + 1), 120 / (index + 1));
-    AddPrim(&g_ot[index], &prim[index]);
+    setRGB0(&prim[index], rand() % 256, rand() % 256, rand() % 256);
+    setXY4(&prim[index], 0, 0, 240 / (index + 1), 0, 0, 240 / (index + 1), 240 / (index + 1), 240 / (index + 1));
+    AddPrim(&(p_env[0].ot[index]), &prim[index]);
+  }
+  
+  for(index = 0; index < numBuf; index++)
+  {
+    memcpy((u_char *)p_env[index].ot, (u_char *)p_env[0].ot, len * sizeof(*(p_env[0].ot)));
   }
 }

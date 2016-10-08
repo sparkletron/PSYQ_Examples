@@ -1,5 +1,5 @@
 SOURCES = main.c
-PSX_EXEC = odTest.exe
+PSX_EXEC = odTail.exe
 PSX_CC = CCPSX.EXE
 PSX_CPE2X = CPE2XWIN.EXE
 PSX_CFLAGS = -O3 -Dpsx -c
