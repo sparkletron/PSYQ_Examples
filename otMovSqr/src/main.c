@@ -192,15 +192,15 @@ void graphics(struct s_environment *p_env)
   SetDefDrawEnv(&p_env[0].draw, 0, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
   SetDefDrawEnv(&p_env[1].draw, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
   
-//   p_env[0].draw.isbg = 1;
-//   p_env[0].draw.r0 = 0;
-//   p_env[0].draw.g0 = 0;
-//   p_env[0].draw.b0 = 0;
-//   
-//   p_env[1].draw.isbg = 1;
-//   p_env[1].draw.r0 = 0;
-//   p_env[1].draw.g0 = 0;
-//   p_env[1].draw.b0 = 0;
+  p_env[0].draw.isbg = 1;
+  p_env[0].draw.r0 = 0;
+  p_env[0].draw.g0 = 0;
+  p_env[0].draw.b0 = 0;
+  
+  p_env[1].draw.isbg = 1;
+  p_env[1].draw.r0 = 0;
+  p_env[1].draw.g0 = 0;
+  p_env[1].draw.b0 = 0;
   
   SetDispMask(1); 
 }
