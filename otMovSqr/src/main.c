@@ -80,13 +80,11 @@ struct
 void graphics(struct s_environment *p_env);
 void display(struct s_environment *p_env);
 void initEnv(struct s_environment *p_env, int numBuf, POLY_F4 *prim, int len);
+void movSqr(POLY_F4 *primitive);
 
 int main() 
 {
-  POLY_F4 primArray[OT_SIZE];
-  int prevTime = 0;
-  int primitive = 0;
-  
+  POLY_F4 primitive[OT_SIZE];
   struct s_environment environment[DUB_BUFFER];
   
   graphics(environment); // setup the graphics (seen below)
@@ -97,75 +95,11 @@ int main()
   PadInitDirect((u_char *)&g_pad[0], (u_char *)&g_pad[1]);
   PadStartCom();
 
-  initEnv(environment, DUB_BUFFER, primArray, OT_SIZE);
+  initEnv(environment, DUB_BUFFER, primitive, OT_SIZE);
 
   while (1) // draw and display forever
   {
-    if(g_pad[0].fourth.bit.ex == 0)
-    {
-      if(prevTime == 0 || ((VSync(-1) - prevTime) > 60))
-      {
-	primArray[primitive].r0 = rand() % 256;
-	primArray[primitive].g0 = rand() % 256;
-	primArray[primitive].b0 = rand() % 256;
-	prevTime = VSync(-1);
-      }
-    }
-    else if(g_pad[0].fourth.bit.circle == 0)
-    {
-      if(prevTime == 0 || ((VSync(-1) - prevTime) > 60))
-      {
-	primitive = (primitive + 1) % OT_SIZE;
-	prevTime = VSync(-1);
-      }
-    }
-    else if(g_pad[0].third.bit.up == 0)
-    {
-      printf("\nUp: %d\n", primArray[primitive].y0);
-      if(primArray[primitive].y0 > 0)
-      {
-	primArray[primitive].y0 -= 1;
-	primArray[primitive].y1 -= 1;
-	primArray[primitive].y2 -= 1;
-	primArray[primitive].y3 -= 1;
-      }
-    }
-    else if(g_pad[0].third.bit.right == 0)
-    {
-      printf("\nRight %d\n", primArray[primitive].x1);
-      if(primArray[primitive].x1 < SCREEN_WIDTH)
-      {
-	primArray[primitive].x0 += 1;
-	primArray[primitive].x1 += 1;
-	primArray[primitive].x2 += 1;
-	primArray[primitive].x3 += 1;
-      }
-
-    }
-    else if(g_pad[0].third.bit.down == 0)
-    {
-      printf("\nDown %d\n", primArray[primitive].y2);
-      if(primArray[primitive].y2 < SCREEN_HEIGHT)
-      {
-	primArray[primitive].y0 += 1;
-	primArray[primitive].y1 += 1;
-	primArray[primitive].y2 += 1;
-	primArray[primitive].y3 += 1;
-      }
-    }
-    else if(g_pad[0].third.bit.left == 0)
-    {
-      printf("\nLeft %d\n", primArray[primitive].x0);
-      if(primArray[primitive].x0 > 0)
-      {
-	primArray[primitive].x0 -= 1;
-	primArray[primitive].x1 -= 1;
-	primArray[primitive].x2 -= 1;
-	primArray[primitive].x3 -= 1;
-      }
-
-    }
-
+    movSqr(primitive);
     display(environment);
   }
 
@@ -241,4 +175,70 @@ void initEnv(struct s_environment *p_env, int numBuf, POLY_F4 *prim, int len)
   {
     memcpy((u_char *)p_env[index].ot, (u_char *)p_env[0].ot, len * sizeof(*(p_env[0].ot)));
   }
+}
+
+void movSqr(POLY_F4 *primitive)
+{
+   static int prevTime = 0;
+   static int primNum = 0;
+   
+   if(g_pad[0].fourth.bit.ex == 0)
+    {
+      if(prevTime == 0 || ((VSync(-1) - prevTime) > 60))
+      {
+	primitive[primNum].r0 = rand() % 256;
+	primitive[primNum].g0 = rand() % 256;
+	primitive[primNum].b0 = rand() % 256;
+	prevTime = VSync(-1);
+      }
+    }
+    else if(g_pad[0].fourth.bit.circle == 0)
+    {
+      if(prevTime == 0 || ((VSync(-1) - prevTime) > 60))
+      {
+	primNum = (primNum + 1) % OT_SIZE;
+	prevTime = VSync(-1);
+      }
+    }
+    else if(g_pad[0].third.bit.up == 0)
+    {
+      if(primitive[primNum].y0 > 0)
+      {
+	primitive[primNum].y0 -= 1;
+	primitive[primNum].y1 -= 1;
+	primitive[primNum].y2 -= 1;
+	primitive[primNum].y3 -= 1;
+      }
+    }
+    else if(g_pad[0].third.bit.right == 0)
+    {
+      if(primitive[primNum].x1 < SCREEN_WIDTH)
+      {
+	primitive[primNum].x0 += 1;
+	primitive[primNum].x1 += 1;
+	primitive[primNum].x2 += 1;
+	primitive[primNum].x3 += 1;
+      }
+
+    }
+    else if(g_pad[0].third.bit.down == 0)
+    {
+      if(primitive[primNum].y2 < SCREEN_HEIGHT)
+      {
+	primitive[primNum].y0 += 1;
+	primitive[primNum].y1 += 1;
+	primitive[primNum].y2 += 1;
+	primitive[primNum].y3 += 1;
+      }
+    }
+    else if(g_pad[0].third.bit.left == 0)
+    {
+      if(primitive[primNum].x0 > 0)
+      {
+	primitive[primNum].x0 -= 1;
+	primitive[primNum].x1 -= 1;
+	primitive[primNum].x2 -= 1;
+	primitive[primNum].x3 -= 1;
+      }
+    }
 }
