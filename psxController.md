@@ -76,6 +76,10 @@ struct s_gamePad
 };
 ```
 
+#### bits
+
+* 1 is button is released, 0 is button is pressed.
+
 #### To use PadInitDirect() you must for receving:
 
 * PadInitDirect(), and pass parameters that store pad info.
