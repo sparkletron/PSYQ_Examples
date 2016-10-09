@@ -15,6 +15,9 @@
 u_long __ramsize   = 0x00200000; // force 2 megabytes of RAM
 u_long __stacksize = 0x00004000; // force 16 kilobytes of stack
 
+int g_currBuff = 0;
+int g_prevBuff = 0;
+
 struct s_environment{
   unsigned long ot[OT_SIZE];
   DISPENV disp;
@@ -147,14 +150,21 @@ void graphics(struct s_environment *p_env)
 
 void display(struct s_environment *p_env)
 {
-  static int currBuff = 0;
 
+  g_prevBuff = g_currBuff;
+  
   DrawSync(0);
   VSync(0);
-  currBuff = (currBuff + 1) % DUB_BUFFER;
-  PutDrawEnv(&p_env[currBuff].draw);
-  PutDispEnv(&p_env[currBuff].disp);
-  DrawOTag(p_env[currBuff].ot);
+  
+  g_currBuff = (g_currBuff + 1) % DUB_BUFFER;
+  
+  PutDrawEnv(&p_env[g_currBuff].draw);
+  PutDispEnv(&p_env[g_currBuff].disp);
+  
+  memcpy((u_char *)p_env[g_currBuff].ot, (u_char *)p_env[g_prevBuff].ot, OT_SIZE * sizeof(*(p_env[g_prevBuff].ot)));
+  
+  DrawOTag(p_env[g_currBuff].ot);
+  
   FntPrint("Ordering Table Example");
   FntFlush(-1);
 }

@@ -80,6 +80,7 @@ Basic Graphics For the PlayStation, requires more setup, but its ordering tables
 
 #### Info
 
+* Ordering Table can have primitives added to it that serve special functions, such as what to draw (gets added to the primitive at a position you choose in the ordering table).
 * Primitives are drawn from the first to last, 0 to array size.
 * Z axis sorting is available, but I haven't taken a hard look at it yet.
 
@@ -110,6 +111,9 @@ Basic Graphics For the PlayStation, requires more setup, but its ordering tables
 * SetUW*(), Set Size of texture
 * setRGB*(), Set color, usually set 0, but can also have more.
 * DrawPrim(), basic function to draw primitives if they are not in the ordering table.
+
+#### Sprites
+* Sprites in basic graphics library does not have an idea of a texture, it has to be added as a DR_TPAGE.
 
 ### Examples for Basic Graphics Library (libgte.h)
 #### Environment Struct
