@@ -99,8 +99,8 @@ int main()
 
   while (1) // draw and display forever
   {
-    movSqr(primitive);
     display(environment);
+    movSqr(primitive);
   }
 
   return 0;

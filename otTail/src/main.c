@@ -6,6 +6,7 @@
 #include <libgpu.h>
 #include <libpad.h>
 #include <libetc.h>
+#include <libmath.h>
 
 #define SCREEN_WIDTH  320 // screen width
 #define	SCREEN_HEIGHT 240 // screen height
@@ -79,14 +80,16 @@ struct
 
 void graphics(struct s_environment *p_env);
 void display(struct s_environment *p_env);
-void initEnv(struct s_environment *p_env, int numBuf, POLY_F4 *prim, int len);
+void initEnv(struct s_environment *p_env, int numBuf, POLY_G4 *prim, int len);
+void movSqr(POLY_G4 *primitive, int len);
+void movUp(POLY_G4 *primitive, int len);
+void movDown(POLY_G4 *primitive, int len);
+void movLeft(POLY_G4 *primitive, int len);
+void movRight(POLY_G4 *primitive, int len);
 
 int main() 
 {
-  POLY_F4 primArray[OT_SIZE];
-  int prevTime = 0;
-  int primitive = 0;
-  
+  POLY_G4 primitive[OT_SIZE];
   struct s_environment environment[DUB_BUFFER];
   
   graphics(environment); // setup the graphics (seen below)
@@ -97,76 +100,12 @@ int main()
   PadInitDirect((u_char *)&g_pad[0], (u_char *)&g_pad[1]);
   PadStartCom();
 
-  initEnv(environment, DUB_BUFFER, primArray, OT_SIZE);
+  initEnv(environment, DUB_BUFFER, primitive, OT_SIZE);
 
   while (1) // draw and display forever
   {
-    if(g_pad[0].fourth.bit.ex == 0)
-    {
-      if(prevTime == 0 || ((VSync(-1) - prevTime) > 60))
-      {
-	primArray[primitive].r0 = rand() % 256;
-	primArray[primitive].g0 = rand() % 256;
-	primArray[primitive].b0 = rand() % 256;
-	prevTime = VSync(-1);
-      }
-    }
-    else if(g_pad[0].fourth.bit.circle == 0)
-    {
-      if(prevTime == 0 || ((VSync(-1) - prevTime) > 60))
-      {
-	primitive = (primitive + 1) % OT_SIZE;
-	prevTime = VSync(-1);
-      }
-    }
-    else if(g_pad[0].third.bit.up == 0)
-    {
-      printf("\nUp: %d\n", primArray[primitive].y0);
-      if(primArray[primitive].y0 > 0)
-      {
-	primArray[primitive].y0 -= 1;
-	primArray[primitive].y1 -= 1;
-	primArray[primitive].y2 -= 1;
-	primArray[primitive].y3 -= 1;
-      }
-    }
-    else if(g_pad[0].third.bit.right == 0)
-    {
-      printf("\nRight %d\n", primArray[primitive].x1);
-      if(primArray[primitive].x1 < SCREEN_WIDTH)
-      {
-	primArray[primitive].x0 += 1;
-	primArray[primitive].x1 += 1;
-	primArray[primitive].x2 += 1;
-	primArray[primitive].x3 += 1;
-      }
-
-    }
-    else if(g_pad[0].third.bit.down == 0)
-    {
-      printf("\nDown %d\n", primArray[primitive].y2);
-      if(primArray[primitive].y2 < SCREEN_HEIGHT)
-      {
-	primArray[primitive].y0 += 1;
-	primArray[primitive].y1 += 1;
-	primArray[primitive].y2 += 1;
-	primArray[primitive].y3 += 1;
-      }
-    }
-    else if(g_pad[0].third.bit.left == 0)
-    {
-      printf("\nLeft %d\n", primArray[primitive].x0);
-      if(primArray[primitive].x0 > 0)
-      {
-	primArray[primitive].x0 -= 1;
-	primArray[primitive].x1 -= 1;
-	primArray[primitive].x2 -= 1;
-	primArray[primitive].x3 -= 1;
-      }
-
-    }
-
     display(environment);
+    movSqr(primitive, OT_SIZE);
   }
 
   return 0;
@@ -220,7 +159,7 @@ void display(struct s_environment *p_env)
   FntFlush(-1);
 }
 
-void initEnv(struct s_environment *p_env, int numBuf, POLY_F4 *prim, int len)
+void initEnv(struct s_environment *p_env, int numBuf, POLY_G4 *prim, int len)
 { 
   int index;
   
@@ -231,14 +170,144 @@ void initEnv(struct s_environment *p_env, int numBuf, POLY_F4 *prim, int len)
   
   for(index = 0; index < len; index++)
   {
-    SetPolyF4(&prim[index]);
+    SetPolyG4(&prim[index]);
     setRGB0(&prim[index], rand() % 256, rand() % 256, rand() % 256);
-    setXY4(&prim[index], 0, 0, 240 / (index + 1), 0, 0, 240 / (index + 1), 240 / (index + 1), 240 / (index + 1));
+    setRGB1(&prim[index], rand() % 256, rand() % 256, rand() % 256);
+    setRGB2(&prim[index], rand() % 256, rand() % 256, rand() % 256);
+    setRGB3(&prim[index], rand() % 256, rand() % 256, rand() % 256);
+    setXYWH(&prim[index], SCREEN_WIDTH / 2 - 25, SCREEN_HEIGHT / 2 - 25, 50, 50);
     AddPrim(&(p_env[0].ot[index]), &prim[index]);
   }
   
   for(index = 0; index < numBuf; index++)
   {
     memcpy((u_char *)p_env[index].ot, (u_char *)p_env[0].ot, len * sizeof(*(p_env[0].ot)));
+  }
+}
+
+void movSqr(POLY_G4 *primitive, int len)
+{
+  int index;
+  
+  if(g_pad[0].third.bit.up == 0 && g_pad[0].third.bit.right == 0)
+  {
+    movUp(primitive, len);
+    movRight(primitive, len);
+  }
+  else if(g_pad[0].third.bit.up == 0 && g_pad[0].third.bit.left == 0)
+  {
+    movUp(primitive, len);
+    movLeft(primitive, len);
+  }
+  else if(g_pad[0].third.bit.down == 0 && g_pad[0].third.bit.right == 0)
+  {
+    movDown(primitive, len);
+    movRight(primitive, len);
+  }
+  else if(g_pad[0].third.bit.down == 0 && g_pad[0].third.bit.left == 0)
+  {
+    movDown(primitive, len);
+    movLeft(primitive, len);
+  }
+  else if(g_pad[0].third.bit.up == 0)
+  {
+    movUp(primitive, len);
+  }
+  else if(g_pad[0].third.bit.right == 0)
+  {
+    movRight(primitive, len);
+  }
+  else if(g_pad[0].third.bit.down == 0)
+  {
+    movDown(primitive, len);
+  }
+  else if(g_pad[0].third.bit.left == 0)
+  {
+    movLeft(primitive, len);
+  }
+  else
+  {
+    for(index = 0; index < 2; index++)
+    {
+      if(primitive[0].x0 > SCREEN_WIDTH / 2 - 25)
+      {
+	movLeft(primitive, len);
+      }
+      
+      if(primitive[0].x0 < SCREEN_WIDTH / 2 - 25)
+      {
+	movRight(primitive, len);
+      }
+      
+      if(primitive[0].y0 < SCREEN_HEIGHT / 2 - 25)
+      {
+	movDown(primitive, len);
+      }
+      
+      if(primitive[0].y0 > SCREEN_HEIGHT / 2 -25)
+      {
+	movUp(primitive, len);
+      }
+    }
+  }
+}
+
+void movUp(POLY_G4 *primitive, int len)
+{
+  int index;
+  if(primitive[0].y0 > 0)
+  {
+    for(index = len - 2; index >= 0; index--)
+    {
+      primitive[index].y0 -= pow(2, len - index - 1)/2;
+      primitive[index].y1 -= pow(2, len - index - 1)/2;
+      primitive[index].y2 -= pow(2, len - index - 1)/2;
+      primitive[index].y3 -= pow(2, len - index - 1)/2;
+    }
+  }
+}
+
+void movDown(POLY_G4 *primitive, int len)
+{
+  int index;
+  if(primitive[0].y2 < SCREEN_HEIGHT)
+  {
+    for(index = len - 2; index >= 0; index--)
+    {
+      primitive[index].y0 += pow(2, len - index - 1)/2;
+      primitive[index].y1 += pow(2, len - index - 1)/2;
+      primitive[index].y2 += pow(2, len - index - 1)/2;
+      primitive[index].y3 += pow(2, len - index - 1)/2;
+    }
+  }
+}
+
+void movLeft(POLY_G4 *primitive, int len)
+{
+  int index;
+  if(primitive[0].x0 > 0)
+  {
+    for(index = len - 2; index >= 0; index--)
+    {
+      primitive[index].x0 -= pow(2, len - index - 1)/2;
+      primitive[index].x1 -= pow(2, len - index - 1)/2;
+      primitive[index].x2 -= pow(2, len - index - 1)/2;
+      primitive[index].x3 -= pow(2, len - index - 1)/2;
+    }
+  }
+}
+
+void movRight(POLY_G4 *primitive, int len)
+{
+  int index;
+  if(primitive[0].x1 < SCREEN_WIDTH)
+  {
+    for(index = len - 2; index >= 0; index--)
+    {
+      primitive[index].x0 += pow(2, len - index - 1)/2;
+      primitive[index].x1 += pow(2, len - index - 1)/2;
+      primitive[index].x2 += pow(2, len - index - 1)/2;
+      primitive[index].x3 += pow(2, len - index - 1)/2;
+    }
   }
 }

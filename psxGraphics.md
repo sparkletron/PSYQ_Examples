@@ -105,7 +105,8 @@ Basic Graphics For the PlayStation, requires more setup, but its ordering tables
 * SetPoly*(), Macros to set primitives, must be called first as this initializes it.
 * SetSemiTrans(), Set semi-transparent primitive.
 * SetShadeTex(), Turn Shading on or off.
-* SetXY*(), Set Size of primitive
+* SetXY*(), Set Size of the primitive
+* setXYWH(), Set Size of the primitive by x0, y0 position with a set width and heigth from that corridinate. 
 * SetUW*(), Set Size of texture
 * setRGB*(), Set color, usually set 0, but can also have more.
 * DrawPrim(), basic function to draw primitives if they are not in the ordering table.
