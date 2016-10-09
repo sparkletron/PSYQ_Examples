@@ -259,10 +259,10 @@ void movUp(POLY_G4 *primitive, int len)
   {
     for(index = len - 2; index >= 0; index--)
     {
-      primitive[index].y0 -= pow(2, len - index - 1)/2;
-      primitive[index].y1 -= pow(2, len - index - 1)/2;
-      primitive[index].y2 -= pow(2, len - index - 1)/2;
-      primitive[index].y3 -= pow(2, len - index - 1)/2;
+      primitive[index].y0 -= 2 * (len - index - 1);
+      primitive[index].y1 -= 2 * (len - index - 1);
+      primitive[index].y2 -= 2 * (len - index - 1);
+      primitive[index].y3 -= 2 * (len - index - 1);
     }
   }
 }
@@ -274,10 +274,10 @@ void movDown(POLY_G4 *primitive, int len)
   {
     for(index = len - 2; index >= 0; index--)
     {
-      primitive[index].y0 += pow(2, len - index - 1)/2;
-      primitive[index].y1 += pow(2, len - index - 1)/2;
-      primitive[index].y2 += pow(2, len - index - 1)/2;
-      primitive[index].y3 += pow(2, len - index - 1)/2;
+      primitive[index].y0 += 2 * (len - index - 1);
+      primitive[index].y1 += 2 * (len - index - 1);
+      primitive[index].y2 += 2 * (len - index - 1);
+      primitive[index].y3 += 2 * (len - index - 1);
     }
   }
 }
@@ -289,10 +289,10 @@ void movLeft(POLY_G4 *primitive, int len)
   {
     for(index = len - 2; index >= 0; index--)
     {
-      primitive[index].x0 -= pow(2, len - index - 1)/2;
-      primitive[index].x1 -= pow(2, len - index - 1)/2;
-      primitive[index].x2 -= pow(2, len - index - 1)/2;
-      primitive[index].x3 -= pow(2, len - index - 1)/2;
+      primitive[index].x0 -= 2 * (len - index - 1);
+      primitive[index].x1 -= 2 * (len - index - 1);
+      primitive[index].x2 -= 2 * (len - index - 1);
+      primitive[index].x3 -= 2 * (len - index - 1);
     }
   }
 }
@@ -304,10 +304,10 @@ void movRight(POLY_G4 *primitive, int len)
   {
     for(index = len - 2; index >= 0; index--)
     {
-      primitive[index].x0 += pow(2, len - index - 1)/2;
-      primitive[index].x1 += pow(2, len - index - 1)/2;
-      primitive[index].x2 += pow(2, len - index - 1)/2;
-      primitive[index].x3 += pow(2, len - index - 1)/2;
+      primitive[index].x0 += 2 * (len - index - 1);
+      primitive[index].x1 += 2 * (len - index - 1);
+      primitive[index].x2 += 2 * (len - index - 1);
+      primitive[index].x3 += 2 * (len - index - 1);
     }
   }
 }
