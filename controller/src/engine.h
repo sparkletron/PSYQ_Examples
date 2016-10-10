@@ -1,9 +1,20 @@
 /*
  * Written By: John Convertino
  * 
- * Example of using a texture on a primitive.
+ * Primitive engine, simple methods for getting primitives on screen, along with some other neat features.
  * 
- * Move square with D-Pad, press X to change color.
+ * Can Do:
+ * 	-Memory Card Access
+ * 	-Texture From CD
+ * 	-Sprites, Tiles, and all polys.
+ *	-Add textures to correct type 
+ * 	-Game Pad
+ * 
+ * Can NOT Do:
+ * 	-3D
+ * 	-Sound
+ * 
+ * Version: 1.0
  * 
 */
 
@@ -20,7 +31,6 @@
 
 #define SCREEN_WIDTH  320 // screen width
 #define	SCREEN_HEIGHT 240 // screen height
-#define OT_SIZE       16 //size of ordering table
 #define DOUBLE_BUF    2
 
 extern u_long __ramsize;  //  = 0x00200000;  force 2 megabytes of RAM
@@ -99,10 +109,37 @@ struct s_primitive
 
 struct s_buffer
 {
-  struct s_primitive primitive[OT_SIZE];
-  unsigned long ot[OT_SIZE];
+  struct s_primitive *p_primitive;
+  unsigned long *p_ot;
   DISPENV disp;
   DRAWENV draw;
+};
+
+struct s_primParam
+{
+  int px;
+  int py;
+  int pw;
+  int ph;
+  int tx;
+  int ty;
+  int tw;
+  int th;
+  int r0;
+  int g0;
+  int b0;
+  int r1;
+  int g1;
+  int b1;
+  int r2;
+  int g2;
+  int b2;
+  int r3;
+  int g3;
+  int b3;
+  enum en_primType type;
+  DR_TPAGE tpage;
+  struct s_timInfo timInfo;
 };
 
 struct s_environment
@@ -118,35 +155,10 @@ struct s_environment
   {
     char *p_title;
     char *p_message;
-    int *p_data;
+    int  *p_data;
   } envMessage;
   
-  struct
-  {
-    int px;
-    int py;
-    int pw;
-    int ph;
-    int tx;
-    int ty;
-    int tw;
-    int th;
-    int r0;
-    int g0;
-    int b0;
-    int r1;
-    int g1;
-    int b1;
-    int r2;
-    int g2;
-    int b2;
-    int r3;
-    int g3;
-    int b3;
-    enum en_primType type;
-    DR_TPAGE tpage;
-    struct s_timInfo timInfo;
-  } primParam[OT_SIZE];
+  struct s_primParam *p_primParam;
   
   struct s_buffer buffer[DOUBLE_BUF];
   
@@ -160,13 +172,24 @@ struct s_environment
   } gamePad;
 };
 
-void initEnv(struct s_environment *p_env);
+//setup environment and set the number of primitives (sets otSize (ordering table size) to this).
+void initEnv(struct s_environment *p_env, int numPrim);
+//update display
 void display(struct s_environment *p_env);
+//load a tim from CD, return address to load tim from in memory.
 u_long *loadTIMfromCD(char *p_path);
+//get tim info
 struct s_timInfo getTIMinfo(u_long *p_address); 
+//load tim info from memory address and set it as a texture page (must be called after populateOT.
 void populateTPage(struct s_environment *p_env, u_long *p_address[], int len);
+//call to populate the ordering table with primitives.
 void populateOT(struct s_environment *p_env);
+//call to update the position of primitives if it has been altered
 void updatePrim(struct s_environment *p_env);
+//simple move routine to keep primitives within the screen
 void movPrim(struct s_environment *p_env);
+//The below need TLC, they are fixed to 128 size, more for show than use at this point.
+//read from the memory card and return pointer to data
 char *memoryCardRead();
+//write to the memory card using data passed to it.
 void memoryCardWrite(char *p_phrase);

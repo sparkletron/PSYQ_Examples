@@ -10,7 +10,7 @@ int main()
 {
   struct s_environment environment;
   
-  initEnv(&environment); // setup the graphics (seen below)
+  initEnv(&environment, 0); // setup the graphics (seen below)
   
   environment.envMessage.p_title = malloc(128);
   environment.envMessage.p_message = malloc(128);

@@ -133,51 +133,161 @@ Basic Graphics For the PlayStation, requires more setup, but its ordering tables
 ### Examples for Basic Graphics Library (libgte.h)
 #### Environment Struct
 ```
+enum en_primType {TYPE_F4, TYPE_FT4, TYPE_G4, TYPE_GT4, TYPE_SPRITE, TYPE_TILE};
+
+struct s_gamePad
+{
+  struct
+  {
+    struct
+    {
+      u_char status:8;
+    } byte;
+    
+  } first;
+  
+  union
+  {
+    struct
+    {
+      u_char recvSize:4;
+      u_char type:4;
+    } nibble;
+    u_char byte;
+    
+  } second;
+  
+  union
+  {
+    struct
+    {
+      u_char select:1;
+      u_char na2:1;
+      u_char na1:1;
+      u_char start:1;
+      u_char up:1;
+      u_char right:1;
+      u_char down:1;
+      u_char left:1;
+    } bit;
+    u_char byte;
+	  
+  } third;
+  
+  union
+  {
+    struct
+    {
+      u_char l2:1;
+      u_char r2:1;
+      u_char l1:1;
+      u_char r1:1;
+      u_char triangle:1;
+      u_char circle:1;
+      u_char ex:1;
+      u_char square:1;
+    } bit;
+    u_char byte;
+	  
+  } fourth;
+};
+
 struct s_timInfo
 {
-  u_short tpage;
-  u_short clut;
+  u_short tpageID;
+  u_short clutID;
+};
+
+struct s_primitive
+{
+  void *data;
+  enum en_primType type;
+};
+
+struct s_buffer
+{
+  struct s_primitive *p_primitive;
+  unsigned long *p_ot;
+  DISPENV disp;
+  DRAWENV draw;
+};
+
+struct s_primParam
+{
+  int px;
+  int py;
+  int pw;
+  int ph;
+  int tx;
+  int ty;
+  int tw;
+  int th;
+  int r0;
+  int g0;
+  int b0;
+  int r1;
+  int g1;
+  int b1;
+  int r2;
+  int g2;
+  int b2;
+  int r3;
+  int g3;
+  int b3;
+  enum en_primType type;
+  DR_TPAGE tpage;
+  struct s_timInfo timInfo;
 };
 
 struct s_environment
 {
-  int currBuff;
-  int prevBuff;
   int otSize;
   int bufSize;
-  int px[OT_SIZE];
-  int py[OT_SIZE];
-  int pw[OT_SIZE];
-  int ph[OT_SIZE];
-  int r0[OT_SIZE];
-  int g0[OT_SIZE];
-  int b0[OT_SIZE];
   
-  struct
+  int curPrim;
+  
+  int prevTime;
+  
+  struct 
   {
-    POLY_FT4 primitive[OT_SIZE];
-    unsigned long ot[OT_SIZE];
-    DISPENV disp;
-    DRAWENV draw;
-  } buffer[DOUBLE_BUF];
+    char *p_title;
+    char *p_message;
+    int  *p_data;
+  } envMessage;
+  
+  struct s_primParam *p_primParam;
+  
+  struct s_buffer buffer[DOUBLE_BUF];
+  
+  struct s_buffer *p_drawBuffer;
+  struct s_buffer *p_regBuffer;
   
   struct
   {
     struct s_gamePad one;
     struct s_gamePad two;
   } gamePad;
-  
-  struct s_timInfo timInfo[OT_SIZE];
 };
 ```
 
 ##### Setup Graphics, double buffer and Ordering Table
 ```
-void initEnv(struct s_environment *p_env)
+void initEnv(struct s_environment *p_env, int numPrim)
 {
   int index;
+  
   p_env->bufSize = DOUBLE_BUF;
-  p_env->otSize = OT_SIZE;
+  p_env->otSize = (numPrim < 1 ? 1 : numPrim);
+  p_env->curPrim = 0;
+  p_env->prevTime = 0;
+  
+  for(index = 0; index < p_env->bufSize; index++)
+  {
+    p_env->buffer[index].p_primitive = calloc(p_env->otSize, sizeof(struct s_primitive));
+    p_env->buffer[index].p_ot = calloc(p_env->otSize, sizeof(unsigned long));
+  }
+  
+  p_env->p_primParam = calloc(p_env->otSize, sizeof(struct s_primParam));
   
   // within the BIOS, if the address 0xBFC7FF52 equals 'E', set it as PAL (1). Otherwise, set it as NTSC (0)
   switch(*(char *)0xbfc7ff52=='E')
@@ -211,11 +321,11 @@ void initEnv(struct s_environment *p_env)
     p_env->buffer[index].draw.g0 = 0;
     p_env->buffer[index].draw.b0 = 0;
     
-    ClearOTag(p_env->buffer[index].ot, p_env->otSize);
+    ClearOTag(p_env->buffer[index].p_ot, p_env->otSize);
   }
   
-  p_env->prevBuff = 0;
-  p_env->currBuff = 0;
+  p_env->p_drawBuffer = &p_env->buffer[0];
+  p_env->p_regBuffer = &p_env->buffer[1];
   
   FntLoad(960, 256); // load the font from the BIOS into VRAM/SGRAM
   SetDumpFnt(FntOpen(5, 20, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 512)); // screen X,Y | max text length X,Y | autmatic background clear 0,1 | max characters
@@ -228,23 +338,30 @@ void initEnv(struct s_environment *p_env)
 ```
 ##### Switching between double buffers.
 ```
+void swapBuffers(struct s_environment *p_env)
+{
+  struct s_buffer *tempBuffer = p_env->p_drawBuffer;
+  
+  p_env->p_drawBuffer = p_env->p_regBuffer;
+  
+  p_env->p_regBuffer = tempBuffer;
+}
+
 void display(struct s_environment *p_env)
 {
-
-  p_env->prevBuff = p_env->currBuff;
-  
   //avoid issues with delayed execution
   while(DrawSync(1));
   VSync(0);
   
-  p_env->currBuff = (p_env->currBuff + 1) % p_env->bufSize;
+  //exchange reg and draw buffer, so newly registered ot will be drawn, and used draw buffer can now be used for registration.
+  swapBuffers(p_env);
   
-  PutDrawEnv(&p_env->buffer[p_env->currBuff].draw);
-  PutDispEnv(&p_env->buffer[p_env->currBuff].disp);
+  PutDrawEnv(&p_env->p_drawBuffer->draw);
+  PutDispEnv(&p_env->p_drawBuffer->disp);
   
-  DrawOTag(p_env->buffer[p_env->currBuff].ot);
+  DrawOTag(p_env->p_drawBuffer->p_ot);
   
-  FntPrint("Texture Example\nLoad From Header");
+  FntPrint("%s\n%s\n%X", p_env->envMessage.p_title, p_env->envMessage.p_message, *p_env->envMessage.p_data);
   FntFlush(-1);
 }
 ```
@@ -254,89 +371,174 @@ void display(struct s_environment *p_env)
 void populateOT(struct s_environment *p_env)
 {
   int index;
-  int buffIndex; 
+  int buffIndex;
   
-  for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
-  {
-    for(index = 0; index < p_env->otSize; index++)
+  for(index = 0; index < p_env->otSize; index++)
+  {    
+    for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
     {
-      p_env->px[index] = 0;
-      p_env->py[index] = 0;
-      p_env->pw[index] = 50;
-      p_env->ph[index] = 50;
-      p_env->r0[index] = 127;
-      p_env->g0[index] = 127;
-      p_env->b0[index] = 127;
+      p_env->buffer[buffIndex].p_primitive[index].type = p_env->p_primParam[index].type;
       
-      SetPolyFT4(&p_env->buffer[buffIndex].primitive[index]);
-      setRGB0(&p_env->buffer[buffIndex].primitive[index], p_env->r0[index], p_env->g0[index], p_env->b0[index]);
-      setXYWH(&p_env->buffer[buffIndex].primitive[index], p_env->px[index], p_env->py[index], p_env->pw[index], p_env->ph[index]);
-      setUVWH(&p_env->buffer[buffIndex].primitive[index], p_env->px[index], p_env->py[index], p_env->pw[index], p_env->ph[index]);
-      AddPrim(&(p_env->buffer[buffIndex].ot[index]), &(p_env->buffer[buffIndex].primitive[index]));
+      switch(p_env->buffer[buffIndex].p_primitive[index].type)
+      {
+	case TYPE_SPRITE:
+	  SetSprt((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data);
+	  setXY0((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].px, p_env->p_primParam[index].py);
+	  setWH((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].pw,  p_env->p_primParam[index].ph);
+	  setUV0((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].tx, p_env->p_primParam[index].ty);
+	  setRGB0((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].r0, p_env->p_primParam[index].g0, p_env->p_primParam[index].b0);
+	  break;
+	case TYPE_TILE:
+	  setTile((TILE *)p_env->buffer[buffIndex].p_primitive[index].data);
+	  setXY0((TILE *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].px, p_env->p_primParam[index].py);
+	  setWH((TILE *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].pw,  p_env->p_primParam[index].ph);
+	  setRGB0((TILE *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].r0, p_env->p_primParam[index].g0, p_env->p_primParam[index].b0);
+	  break;
+	case TYPE_F4:
+	  SetPolyF4((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data);
+	  setXYWH((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].px, p_env->p_primParam[index].py, p_env->p_primParam[index].pw, p_env->p_primParam[index].ph);
+	  setRGB0((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].r0, p_env->p_primParam[index].g0, p_env->p_primParam[index].b0);
+	  break;
+	case TYPE_FT4:
+	  SetPolyFT4((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data);
+	  setUVWH((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].tx, p_env->p_primParam[index].ty, p_env->p_primParam[index].tw, p_env->p_primParam[index].th);
+	  setXYWH((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].px, p_env->p_primParam[index].py, p_env->p_primParam[index].pw, p_env->p_primParam[index].ph);
+	  setRGB0((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].r0, p_env->p_primParam[index].g0, p_env->p_primParam[index].b0);
+	  break;
+	case TYPE_G4:
+	  SetPolyG4((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data);
+	  setXYWH((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].px, p_env->p_primParam[index].py, p_env->p_primParam[index].pw, p_env->p_primParam[index].ph);       
+	  setRGB0((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].r0, p_env->p_primParam[index].g0, p_env->p_primParam[index].b0);
+	  setRGB1((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].r1, p_env->p_primParam[index].g1, p_env->p_primParam[index].b1);
+	  setRGB2((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].r2, p_env->p_primParam[index].g2, p_env->p_primParam[index].b2);
+	  setRGB3((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].r3, p_env->p_primParam[index].g3, p_env->p_primParam[index].b3);
+	  break;
+	case TYPE_GT4:
+	  SetPolyGT4((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data);
+	  setUVWH((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].tx, p_env->p_primParam[index].ty, p_env->p_primParam[index].tw, p_env->p_primParam[index].th);
+	  setXYWH((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].px, p_env->p_primParam[index].py, p_env->p_primParam[index].pw, p_env->p_primParam[index].ph);      
+	  setRGB0((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].r0, p_env->p_primParam[index].g0, p_env->p_primParam[index].b0);
+	  setRGB1((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].r1, p_env->p_primParam[index].g1, p_env->p_primParam[index].b1);
+	  setRGB2((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].r2, p_env->p_primParam[index].g2, p_env->p_primParam[index].b2);
+	  setRGB3((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].r3, p_env->p_primParam[index].g3, p_env->p_primParam[index].b3);
+	  break;
+	default:
+	  printf("\nERROR, NO TYPE DEFINED AT INDEX %d\n", index);
+	  break;
+      }
+      
+      AddPrim(&(p_env->buffer[buffIndex].p_ot[index]), p_env->buffer[buffIndex].p_primitive[index].data);
     }
   }
 }
 ```
 ##### Update Primitives With Common Values
 ```
-void movSqr(struct s_environment *p_env)
+void updatePrim(struct s_environment *p_env)
 {
-  static int prevTime = 0;
-  static int primNum = 0;
+  int index;
   
-  if(p_env->gamePad.one.fourth.bit.ex == 0)
+  for(index = 0; index < p_env->otSize; index++)
   {
-    if(prevTime == 0 || ((VSync(-1) - prevTime) > 60))
+    switch(p_env->p_regBuffer->p_primitive[index].type)
     {
-      p_env->r0[primNum] = rand() % 256;
-      p_env->g0[primNum] = rand() % 256;
-      p_env->b0[primNum] = rand() % 256;
-      prevTime = VSync(-1);
+      case TYPE_SPRITE:
+	setXY0((SPRT *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].px, p_env->p_primParam[index].py);
+	setWH((SPRT *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].pw,  p_env->p_primParam[index].ph);
+	setUV0((SPRT *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].tx, p_env->p_primParam[index].ty);
+	setRGB0((SPRT *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r0, p_env->p_primParam[index].g0, p_env->p_primParam[index].b0);
+	break;
+      case TYPE_TILE:
+	setXY0((TILE *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].px, p_env->p_primParam[index].py);
+	setWH((TILE *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].pw,  p_env->p_primParam[index].ph);
+	setRGB0((TILE *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r0, p_env->p_primParam[index].g0, p_env->p_primParam[index].b0);
+	break;
+      case TYPE_F4:
+	setXYWH((POLY_F4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].px, p_env->p_primParam[index].py, p_env->p_primParam[index].pw, p_env->p_primParam[index].ph);
+	setRGB0((POLY_F4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r0, p_env->p_primParam[index].g0, p_env->p_primParam[index].b0);
+	break;
+      case TYPE_FT4:
+	setUVWH((POLY_FT4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].tx, p_env->p_primParam[index].ty, p_env->p_primParam[index].tw, p_env->p_primParam[index].th);
+	setXYWH((POLY_FT4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].px, p_env->p_primParam[index].py, p_env->p_primParam[index].pw, p_env->p_primParam[index].ph);
+	setRGB0((POLY_FT4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r0, p_env->p_primParam[index].g0, p_env->p_primParam[index].b0);
+	break;
+      case TYPE_G4:
+	setXYWH((POLY_G4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].px, p_env->p_primParam[index].py, p_env->p_primParam[index].pw, p_env->p_primParam[index].ph);       
+	setRGB0((POLY_G4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r0, p_env->p_primParam[index].g0, p_env->p_primParam[index].b0);
+	setRGB1((POLY_G4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r1, p_env->p_primParam[index].g1, p_env->p_primParam[index].b1);
+	setRGB2((POLY_G4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r2, p_env->p_primParam[index].g2, p_env->p_primParam[index].b2);
+	setRGB3((POLY_G4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r3, p_env->p_primParam[index].g3, p_env->p_primParam[index].b3);
+	break;
+      case TYPE_GT4:
+	setUVWH((POLY_GT4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].tx, p_env->p_primParam[index].ty, p_env->p_primParam[index].tw, p_env->p_primParam[index].th);
+	setXYWH((POLY_GT4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].px, p_env->p_primParam[index].py, p_env->p_primParam[index].pw, p_env->p_primParam[index].ph);      
+	setRGB0((POLY_GT4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r0, p_env->p_primParam[index].g0, p_env->p_primParam[index].b0);
+	setRGB1((POLY_GT4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r1, p_env->p_primParam[index].g1, p_env->p_primParam[index].b1);
+	setRGB2((POLY_GT4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r2, p_env->p_primParam[index].g2, p_env->p_primParam[index].b2);
+	setRGB3((POLY_GT4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r3, p_env->p_primParam[index].g3, p_env->p_primParam[index].b3);
+	break;
+      default:
+	printf("\nUnknown Type for update at index %d %d\n", index, p_env->p_regBuffer->p_primitive[index].type);
+	break;
+    }
+  }
+}
+
+void movPrim(struct s_environment *p_env)
+{  
+  if(p_env->gamePad.one.fourth.bit.circle == 0)
+  {
+    if(p_env->prevTime == 0 || ((VSync(-1) - p_env->prevTime) > 60))
+    {
+      p_env->curPrim = (p_env->curPrim + 1) % p_env->otSize;
+      p_env->prevTime = VSync(-1);
     }
   }
   
-  if(p_env->gamePad.one.fourth.bit.circle == 0)
+  if(p_env->gamePad.one.fourth.bit.ex == 0)
   {
-    if(prevTime == 0 || ((VSync(-1) - prevTime) > 60))
+    if(p_env->prevTime == 0 || ((VSync(-1) - p_env->prevTime) > 60))
     {
-      primNum = (primNum + 1) % p_env->otSize;
-      prevTime = VSync(-1);
+      p_env->p_primParam[p_env->curPrim].r0 = rand() % 256;
+      p_env->p_primParam[p_env->curPrim].g0 = rand() % 256;
+      p_env->p_primParam[p_env->curPrim].b0 = rand() % 256;
+      p_env->prevTime = VSync(-1);
     }
   }
   
   if(p_env->gamePad.one.third.bit.up == 0)
   {
-    if(p_env->py[primNum] > 0)
+    if(p_env->p_primParam[p_env->curPrim].py > 0)
     {
-      p_env->py[primNum] -= 1;
+      p_env->p_primParam[p_env->curPrim].py -= 1;
     }
   }
   
   if(p_env->gamePad.one.third.bit.right == 0)
   {
-    if((p_env->px[primNum] + 50) < SCREEN_WIDTH)
+    if((p_env->p_primParam[p_env->curPrim].px + p_env->p_primParam[p_env->curPrim].pw) < SCREEN_WIDTH)
     {
-      p_env->px[primNum] += 1;
+      p_env->p_primParam[p_env->curPrim].px += 1;
     }
   }
   
   if(p_env->gamePad.one.third.bit.down == 0)
   {
-    if((p_env->py[primNum] + 50) < SCREEN_HEIGHT)
+    if((p_env->p_primParam[p_env->curPrim].py + p_env->p_primParam[p_env->curPrim].ph) < SCREEN_HEIGHT)
     {
-      p_env->py[primNum] += 1;
+      p_env->p_primParam[p_env->curPrim].py += 1;
     }
   }
   
   if(p_env->gamePad.one.third.bit.left == 0)
   {
-    if(p_env->px[primNum] > 0)
+    if(p_env->p_primParam[p_env->curPrim].px > 0)
     {
-      p_env->px[primNum] -= 1;
+      p_env->p_primParam[p_env->curPrim].px -= 1;
     }
   }
   
-  setRGB0(&p_env->buffer[p_env->prevBuff].primitive[primNum], p_env->r0[primNum], p_env->g0[primNum], p_env->b0[primNum]);
-  setXYWH(&p_env->buffer[p_env->prevBuff].primitive[primNum], p_env->px[primNum], p_env->py[primNum], p_env->pw[primNum], p_env->ph[primNum]);
+  updatePrim(p_env);
 }
 ```
+

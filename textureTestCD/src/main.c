@@ -18,7 +18,7 @@ int main()
   u_long *p_address[2];
   struct s_environment environment;
 
-  initEnv(&environment); // setup the graphics (seen below)
+  initEnv(&environment, 2); // setup the graphics (seen below)
   
   environment.envMessage.p_data = NULL;
   environment.envMessage.p_message = NULL;
@@ -49,24 +49,24 @@ void createGameObjects(struct s_environment *p_env)
   int index;
   int buffIndex;
   
-  for(index = 0; index < OT_SIZE; index++)
+  for(index = 0; index < p_env->otSize; index++)
   {
-    p_env->primParam[index].px = 0;
-    p_env->primParam[index].py = 0;
-    p_env->primParam[index].tx = 0;
-    p_env->primParam[index].ty = 0;
-    p_env->primParam[index].pw = 50;
-    p_env->primParam[index].ph = 50;
-    p_env->primParam[index].tw = 50;
-    p_env->primParam[index].th = 50;
-    p_env->primParam[index].r0 = 127;
-    p_env->primParam[index].g0 = 127;
-    p_env->primParam[index].b0 = 127;
-    p_env->primParam[index].type = TYPE_FT4;
+    p_env->p_primParam[index].px = 0;
+    p_env->p_primParam[index].py = 0;
+    p_env->p_primParam[index].tx = 0;
+    p_env->p_primParam[index].ty = 0;
+    p_env->p_primParam[index].pw = 50;
+    p_env->p_primParam[index].ph = 50;
+    p_env->p_primParam[index].tw = 50;
+    p_env->p_primParam[index].th = 50;
+    p_env->p_primParam[index].r0 = 127;
+    p_env->p_primParam[index].g0 = 127;
+    p_env->p_primParam[index].b0 = 127;
+    p_env->p_primParam[index].type = TYPE_FT4;
     
-    for(buffIndex = 0; buffIndex < DOUBLE_BUF; buffIndex++)
+    for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
     {
-      p_env->buffer[buffIndex].primitive[index].data = calloc(1, sizeof(POLY_FT4));
+      p_env->buffer[buffIndex].p_primitive[index].data = calloc(1, sizeof(POLY_FT4));
     }
   }
 }

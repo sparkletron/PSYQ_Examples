@@ -22,7 +22,7 @@ int main()
   u_long *p_address[] = {(u_long *)e_sand, (u_long *)e_image};
   struct s_environment environment;
 
-  initEnv(&environment); // setup the graphics (seen below)
+  initEnv(&environment, 2); // setup the graphics (seen below)
   
   environment.envMessage.p_data = NULL;
   environment.envMessage.p_message = NULL;
@@ -49,38 +49,38 @@ void createGameObjects(struct s_environment *p_env)
 {
   int buffIndex;
   
-  p_env->primParam[0].px = 0;
-  p_env->primParam[0].py = 0;
-  p_env->primParam[0].tx = 0;
-  p_env->primParam[0].ty = 0;
-  p_env->primParam[0].pw = 320;
-  p_env->primParam[0].ph = 240;
-  p_env->primParam[0].tw = 160;
-  p_env->primParam[0].th = 120;
-  p_env->primParam[0].r0 = 127;
-  p_env->primParam[0].g0 = 127;
-  p_env->primParam[0].b0 = 127;
-  p_env->primParam[0].type = TYPE_FT4;
+  p_env->p_primParam[0].px = 0;
+  p_env->p_primParam[0].py = 0;
+  p_env->p_primParam[0].tx = 0;
+  p_env->p_primParam[0].ty = 0;
+  p_env->p_primParam[0].pw = 320;
+  p_env->p_primParam[0].ph = 240;
+  p_env->p_primParam[0].tw = 160;
+  p_env->p_primParam[0].th = 120;
+  p_env->p_primParam[0].r0 = 127;
+  p_env->p_primParam[0].g0 = 127;
+  p_env->p_primParam[0].b0 = 127;
+  p_env->p_primParam[0].type = TYPE_FT4;
   
-  for(buffIndex = 0; buffIndex < DOUBLE_BUF; buffIndex++)
+  for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
   {
-    p_env->buffer[buffIndex].primitive[0].data = calloc(1, sizeof(POLY_FT4));
+    p_env->buffer[buffIndex].p_primitive[0].data = calloc(1, sizeof(POLY_FT4));
   }
   
-  p_env->primParam[1].px = SCREEN_WIDTH / 2 - 32;
-  p_env->primParam[1].py = SCREEN_HEIGHT / 2 - 32;;
-  p_env->primParam[1].tx = 0;
-  p_env->primParam[1].ty = 0;
-  p_env->primParam[1].pw = 64;
-  p_env->primParam[1].ph = 64;
-  p_env->primParam[1].r0 = 127;
-  p_env->primParam[1].g0 = 127;
-  p_env->primParam[1].b0 = 127;
-  p_env->primParam[1].type = TYPE_SPRITE;
+  p_env->p_primParam[1].px = SCREEN_WIDTH / 2 - 32;
+  p_env->p_primParam[1].py = SCREEN_HEIGHT / 2 - 32;;
+  p_env->p_primParam[1].tx = 0;
+  p_env->p_primParam[1].ty = 0;
+  p_env->p_primParam[1].pw = 64;
+  p_env->p_primParam[1].ph = 64;
+  p_env->p_primParam[1].r0 = 127;
+  p_env->p_primParam[1].g0 = 127;
+  p_env->p_primParam[1].b0 = 127;
+  p_env->p_primParam[1].type = TYPE_SPRITE;
   
-  for(buffIndex = 0; buffIndex < DOUBLE_BUF; buffIndex++)
+  for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
   {
-    p_env->buffer[buffIndex].primitive[1].data = calloc(1, sizeof(SPRT));
+    p_env->buffer[buffIndex].p_primitive[1].data = calloc(1, sizeof(SPRT));
   }
 }
 
@@ -90,11 +90,11 @@ int animate(struct s_environment *p_env)
   {
     p_env->prevTime = VSync(-1);
     
-    p_env->primParam[1].tx = (p_env->primParam[1].tx + 64) % 256;
+    p_env->p_primParam[1].tx = (p_env->p_primParam[1].tx + 64) % 256;
     
-    if(p_env->primParam[1].tx == 0)
+    if(p_env->p_primParam[1].tx == 0)
     {
-      p_env->primParam[1].ty = (p_env->primParam[1].ty + 64) % 256;
+      p_env->p_primParam[1].ty = (p_env->p_primParam[1].ty + 64) % 256;
     }
   }
   updatePrim(p_env);
