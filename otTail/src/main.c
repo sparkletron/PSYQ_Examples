@@ -1,3 +1,4 @@
+
 /*
 */
 
@@ -6,25 +7,19 @@
 #include <libgpu.h>
 #include <libpad.h>
 #include <libetc.h>
-#include <libmath.h>
 
 #define SCREEN_WIDTH  320 // screen width
 #define	SCREEN_HEIGHT 240 // screen height
 #define OT_SIZE       6 //size of ordering table
-#define DUB_BUFFER    2
+#define DOUBLE_BUF    2
+
 u_long __ramsize   = 0x00200000; // force 2 megabytes of RAM
 u_long __stacksize = 0x00004000; // force 16 kilobytes of stack
 
-int g_currBuff = 0;
-int g_prevBuff = 0;
+extern unsigned char e_image[];
+extern unsigned char e_sand[];
 
-struct s_environment{
-  unsigned long ot[OT_SIZE];
-  DISPENV disp;
-  DRAWENV draw;
-};
-
-struct
+struct s_gamePad
 {
   struct
   {
@@ -79,43 +74,62 @@ struct
     u_char byte:8;
 	  
   } fourth;
-} g_pad[2];
+};
 
-void graphics(struct s_environment *p_env);
+struct s_environment
+{
+  int currBuff;
+  int prevBuff;
+  int otSize;
+  int bufSize;
+  
+  struct
+  {
+    unsigned long ot[OT_SIZE];
+    DISPENV disp;
+    DRAWENV draw;
+  } buffer[DOUBLE_BUF];
+  
+  struct
+  {
+    struct s_gamePad one;
+    struct s_gamePad two;
+  } gamePad;
+};
+
+void initEnv(struct s_environment *p_env);
 void display(struct s_environment *p_env);
-void initEnv(struct s_environment *p_env, int numBuf, POLY_G4 *prim, int len);
-void movSqr(POLY_G4 *primitive, int len);
-void movUp(POLY_G4 *primitive, int len);
-void movDown(POLY_G4 *primitive, int len);
-void movLeft(POLY_G4 *primitive, int len);
-void movRight(POLY_G4 *primitive, int len);
+void populateOT(struct s_environment *p_env, POLY_G4 *p_primitive);
+void movSqr(struct s_environment *p_env, POLY_G4 *p_primitive);
+void movUp(POLY_G4 *p_primitive, int len);
+void movDown(POLY_G4 *p_primitive, int len);
+void movLeft(POLY_G4 *p_primitive, int len);
+void movRight(POLY_G4 *p_primitive, int len);
 
 int main() 
 {
   POLY_G4 primitive[OT_SIZE];
-  struct s_environment environment[DUB_BUFFER];
+  struct s_environment environment;
   
-  graphics(environment); // setup the graphics (seen below)
+  initEnv(&environment); // setup the graphics (seen below)
   
-  FntLoad(960, 256); // load the font from the BIOS into VRAM/SGRAM
-  SetDumpFnt(FntOpen(5, 20, 320, 240, 0, 512)); // screen X,Y | max text length X,Y | autmatic background clear 0,1 | max characters
-
-  PadInitDirect((u_char *)&g_pad[0], (u_char *)&g_pad[1]);
-  PadStartCom();
-
-  initEnv(environment, DUB_BUFFER, primitive, OT_SIZE);
+  populateOT(&environment, primitive);
 
   while (1) // draw and display forever
   {
-    display(environment);
-    movSqr(primitive, OT_SIZE);
+    display(&environment);
+    movSqr(&environment, primitive);
   }
 
   return 0;
 }
 
-void graphics(struct s_environment *p_env)
+void initEnv(struct s_environment *p_env)
 {
+  int index;
+  p_env->bufSize = DOUBLE_BUF;
+  p_env->otSize = OT_SIZE;
+  
   // within the BIOS, if the address 0xBFC7FF52 equals 'E', set it as PAL (1). Otherwise, set it as NTSC (0)
   switch(*(char *)0xbfc7ff52=='E')
   {
@@ -128,21 +142,37 @@ void graphics(struct s_environment *p_env)
   }
   
   ResetGraph(0);
+
+  for(index = 0; index < p_env->bufSize; index += 2) 
+  {
+    SetDefDispEnv(&p_env->buffer[index].disp, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    SetDefDrawEnv(&p_env->buffer[index].draw, 0, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
+  }
+
+  for(index = 1; index < p_env->bufSize; index += 2)
+  {
+    SetDefDispEnv(&p_env->buffer[index].disp, 0, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
+    SetDefDrawEnv(&p_env->buffer[index].draw, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+  }
+
+  for(index = 0; index < p_env->bufSize; index++)
+  {
+    p_env->buffer[index].draw.isbg = 1;
+    p_env->buffer[index].draw.r0 = 0;
+    p_env->buffer[index].draw.g0 = 0;
+    p_env->buffer[index].draw.b0 = 0;
+    
+    ClearOTag(p_env->buffer[index].ot, p_env->otSize);
+  }
   
-  SetDefDispEnv(&p_env[0].disp, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-  SetDefDispEnv(&p_env[1].disp, 0, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
-  SetDefDrawEnv(&p_env[0].draw, 0, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
-  SetDefDrawEnv(&p_env[1].draw, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+  p_env->prevBuff = 0;
+  p_env->currBuff = 0;
   
-  p_env[0].draw.isbg = 1;
-  p_env[0].draw.r0 = 0;
-  p_env[0].draw.g0 = 0;
-  p_env[0].draw.b0 = 0;
+  FntLoad(960, 256); // load the font from the BIOS into VRAM/SGRAM
+  SetDumpFnt(FntOpen(5, 20, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 512)); // screen X,Y | max text length X,Y | autmatic background clear 0,1 | max characters
   
-  p_env[1].draw.isbg = 1;
-  p_env[1].draw.r0 = 0;
-  p_env[1].draw.g0 = 0;
-  p_env[1].draw.b0 = 0;
+  PadInitDirect((u_char *)&p_env->gamePad.one, (u_char *)&p_env->gamePad.two);
+  PadStartCom();
   
   SetDispMask(1); 
 }
@@ -151,173 +181,148 @@ void graphics(struct s_environment *p_env)
 void display(struct s_environment *p_env)
 {
 
-  g_prevBuff = g_currBuff;
+  p_env->prevBuff = p_env->currBuff;
   
-  DrawSync(0);
+  //avoid issues with delayed execution
+  while(DrawSync(1));
   VSync(0);
   
-  g_currBuff = (g_currBuff + 1) % DUB_BUFFER;
+  p_env->currBuff = (p_env->currBuff + 1) % p_env->bufSize;
   
-  PutDrawEnv(&p_env[g_currBuff].draw);
-  PutDispEnv(&p_env[g_currBuff].disp);
+  PutDrawEnv(&p_env->buffer[p_env->currBuff].draw);
+  PutDispEnv(&p_env->buffer[p_env->currBuff].disp);
   
-  memcpy((u_char *)p_env[g_currBuff].ot, (u_char *)p_env[g_prevBuff].ot, OT_SIZE * sizeof(*(p_env[g_prevBuff].ot)));
+  memcpy((u_char *)p_env->buffer[p_env->currBuff].ot, (u_char *)p_env->buffer[p_env->prevBuff].ot, OT_SIZE * sizeof(*(p_env->buffer[p_env->prevBuff].ot)));
   
-  DrawOTag(p_env[g_currBuff].ot);
+  DrawOTag(p_env->buffer[p_env->currBuff].ot);
   
-  FntPrint("Ordering Table Example");
+  FntPrint("Ordering Table Example\nMoving Square");
   FntFlush(-1);
 }
 
-void initEnv(struct s_environment *p_env, int numBuf, POLY_G4 *prim, int len)
-{ 
-  int index;
-  
-  for(index = 0; index < numBuf; index++)
-  {
-      ClearOTag(p_env[index].ot, len);
-  }
-  
-  for(index = 0; index < len; index++)
-  {
-    SetPolyG4(&prim[index]);
-    setRGB0(&prim[index], rand() % 256, rand() % 256, rand() % 256);
-    setRGB1(&prim[index], rand() % 256, rand() % 256, rand() % 256);
-    setRGB2(&prim[index], rand() % 256, rand() % 256, rand() % 256);
-    setRGB3(&prim[index], rand() % 256, rand() % 256, rand() % 256);
-    setXYWH(&prim[index], SCREEN_WIDTH / 2 - 25, SCREEN_HEIGHT / 2 - 25, 50, 50);
-    AddPrim(&(p_env[0].ot[index]), &prim[index]);
-  }
-  
-  for(index = 0; index < numBuf; index++)
-  {
-    memcpy((u_char *)p_env[index].ot, (u_char *)p_env[0].ot, len * sizeof(*(p_env[0].ot)));
-  }
-}
-
-void movSqr(POLY_G4 *primitive, int len)
+void populateOT(struct s_environment *p_env, POLY_G4 *p_primitive)
 {
   int index;
   
-  if(g_pad[0].third.bit.up == 0 && g_pad[0].third.bit.right == 0)
+  for(index = 0; index < p_env->otSize; index++)
   {
-    movUp(primitive, len);
-    movRight(primitive, len);
+    SetPolyG4(&p_primitive[index]);
+    setRGB0(&p_primitive[index], rand() % 256, rand() % 256, rand() % 256);
+    setRGB1(&p_primitive[index], rand() % 256, rand() % 256, rand() % 256);
+    setRGB2(&p_primitive[index], rand() % 256, rand() % 256, rand() % 256);
+    setRGB3(&p_primitive[index], rand() % 256, rand() % 256, rand() % 256);
+    setXYWH(&p_primitive[index], SCREEN_WIDTH / 2 - 25, SCREEN_HEIGHT / 2 - 25, 50, 50);
+    AddPrim(&(p_env->buffer[p_env->prevBuff].ot[index]), &p_primitive[index]);
   }
-  else if(g_pad[0].third.bit.up == 0 && g_pad[0].third.bit.left == 0)
+}
+
+void movSqr(struct s_environment *p_env, POLY_G4 *p_primitive)
+{
+  int index;
+  
+  if(p_env->gamePad.one.third.bit.up == 0)
   {
-    movUp(primitive, len);
-    movLeft(primitive, len);
+    movUp(p_primitive, p_env->otSize);
   }
-  else if(g_pad[0].third.bit.down == 0 && g_pad[0].third.bit.right == 0)
+  
+  if(p_env->gamePad.one.third.bit.left == 0)
   {
-    movDown(primitive, len);
-    movRight(primitive, len);
+    movLeft(p_primitive, p_env->otSize);
   }
-  else if(g_pad[0].third.bit.down == 0 && g_pad[0].third.bit.left == 0)
+  
+  if(p_env->gamePad.one.third.bit.down == 0)
   {
-    movDown(primitive, len);
-    movLeft(primitive, len);
+    movDown(p_primitive, p_env->otSize);
   }
-  else if(g_pad[0].third.bit.up == 0)
+
+  if(p_env->gamePad.one.third.bit.right == 0)
   {
-    movUp(primitive, len);
+    movRight(p_primitive, p_env->otSize);
   }
-  else if(g_pad[0].third.bit.right == 0)
-  {
-    movRight(primitive, len);
-  }
-  else if(g_pad[0].third.bit.down == 0)
-  {
-    movDown(primitive, len);
-  }
-  else if(g_pad[0].third.bit.left == 0)
-  {
-    movLeft(primitive, len);
-  }
-  else
+  
+  if(p_env->gamePad.one.third.byte == 0xFF)
   {
     for(index = 0; index < 2; index++)
     {
-      if(primitive[0].x0 > SCREEN_WIDTH / 2 - 25)
+      if(p_primitive[0].x0 > SCREEN_WIDTH / 2 - 25)
       {
-	movLeft(primitive, len);
+	movLeft(p_primitive, p_env->otSize);
       }
       
-      if(primitive[0].x0 < SCREEN_WIDTH / 2 - 25)
+      if(p_primitive[0].x0 < SCREEN_WIDTH / 2 - 25)
       {
-	movRight(primitive, len);
+	movRight(p_primitive, p_env->otSize);
       }
       
-      if(primitive[0].y0 < SCREEN_HEIGHT / 2 - 25)
+      if(p_primitive[0].y0 < SCREEN_HEIGHT / 2 - 25)
       {
-	movDown(primitive, len);
+	movDown(p_primitive, p_env->otSize);
       }
       
-      if(primitive[0].y0 > SCREEN_HEIGHT / 2 -25)
+      if(p_primitive[0].y0 > SCREEN_HEIGHT / 2 -25)
       {
-	movUp(primitive, len);
+	movUp(p_primitive, p_env->otSize);
       }
     }
   }
 }
 
-void movUp(POLY_G4 *primitive, int len)
+void movUp(POLY_G4 *p_primitive, int len)
 {
   int index;
-  if(primitive[0].y0 > 0)
+  if(p_primitive[0].y0 > 0)
   {
     for(index = len - 2; index >= 0; index--)
     {
-      primitive[index].y0 -= 2 * (len - index - 1);
-      primitive[index].y1 -= 2 * (len - index - 1);
-      primitive[index].y2 -= 2 * (len - index - 1);
-      primitive[index].y3 -= 2 * (len - index - 1);
+      p_primitive[index].y0 -= 2 * (len - index - 1);
+      p_primitive[index].y1 -= 2 * (len - index - 1);
+      p_primitive[index].y2 -= 2 * (len - index - 1);
+      p_primitive[index].y3 -= 2 * (len - index - 1);
     }
   }
 }
 
-void movDown(POLY_G4 *primitive, int len)
+void movDown(POLY_G4 *p_primitive, int len)
 {
   int index;
-  if(primitive[0].y2 < SCREEN_HEIGHT)
+  if(p_primitive[0].y2 < SCREEN_HEIGHT)
   {
     for(index = len - 2; index >= 0; index--)
     {
-      primitive[index].y0 += 2 * (len - index - 1);
-      primitive[index].y1 += 2 * (len - index - 1);
-      primitive[index].y2 += 2 * (len - index - 1);
-      primitive[index].y3 += 2 * (len - index - 1);
+      p_primitive[index].y0 += 2 * (len - index - 1);
+      p_primitive[index].y1 += 2 * (len - index - 1);
+      p_primitive[index].y2 += 2 * (len - index - 1);
+      p_primitive[index].y3 += 2 * (len - index - 1);
     }
   }
 }
 
-void movLeft(POLY_G4 *primitive, int len)
+void movLeft(POLY_G4 *p_primitive, int len)
 {
   int index;
-  if(primitive[0].x0 > 0)
+  if(p_primitive[0].x0 > 0)
   {
     for(index = len - 2; index >= 0; index--)
     {
-      primitive[index].x0 -= 2 * (len - index - 1);
-      primitive[index].x1 -= 2 * (len - index - 1);
-      primitive[index].x2 -= 2 * (len - index - 1);
-      primitive[index].x3 -= 2 * (len - index - 1);
+      p_primitive[index].x0 -= 2 * (len - index - 1);
+      p_primitive[index].x1 -= 2 * (len - index - 1);
+      p_primitive[index].x2 -= 2 * (len - index - 1);
+      p_primitive[index].x3 -= 2 * (len - index - 1);
     }
   }
 }
 
-void movRight(POLY_G4 *primitive, int len)
+void movRight(POLY_G4 *p_primitive, int len)
 {
   int index;
-  if(primitive[0].x1 < SCREEN_WIDTH)
+  if(p_primitive[0].x1 < SCREEN_WIDTH)
   {
     for(index = len - 2; index >= 0; index--)
     {
-      primitive[index].x0 += 2 * (len - index - 1);
-      primitive[index].x1 += 2 * (len - index - 1);
-      primitive[index].x2 += 2 * (len - index - 1);
-      primitive[index].x3 += 2 * (len - index - 1);
+      p_primitive[index].x0 += 2 * (len - index - 1);
+      p_primitive[index].x1 += 2 * (len - index - 1);
+      p_primitive[index].x2 += 2 * (len - index - 1);
+      p_primitive[index].x3 += 2 * (len - index - 1);
     }
   }
 }

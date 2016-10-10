@@ -1,4 +1,10 @@
 /*
+ * Written By: John Convertino
+ * 
+ * Example of using an ordering table with primitives.
+ * 
+ * Select Squares by pressing circle, change color with x, and move around with the D-PAD.
+ * 
 */
 
 #include <stdlib.h>
