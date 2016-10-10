@@ -125,7 +125,9 @@ f4.tpage = LoadTPage(g_timData.pixel, g_timData.pmode, 0, g_timData.px, g_timDat
 //load clut, and return its id to the texture primitive
 f4.clut = LoadClut(g_timData.clut, g_timData.cx, g_timData.cy);
 
+//can also use setXYWH(), and setUVWH() instead, though the below can allow you to flip the texture.
 //set primitive coordinates, and set its texture coordinates
 setXY4(&f4, 0, 0, 50, 0, 0, 50, 50, 50);
 setUV4(&f4, 0, 0, 50, 0, 0, 50, 50, 50);
+
 ```
