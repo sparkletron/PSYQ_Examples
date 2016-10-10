@@ -14,48 +14,14 @@
 #define	SCREEN_HEIGHT 240 // screen height
 #define OT_SIZE       2 //size of ordering table
 #define DOUBLE_BUF    2
+
 u_long __ramsize   = 0x00200000; // force 2 megabytes of RAM
 u_long __stacksize = 0x00004000; // force 16 kilobytes of stack
 
 extern unsigned char e_image[];
 extern unsigned char e_sand[];
 
-
-struct s_environment
-{
-  int currBuff;
-  int prevBuff;
-  int otSize;
-  int bufSize;
-  
-  struct
-  {
-    unsigned long ot[OT_SIZE];
-    DISPENV disp;
-    DRAWENV draw;
-  } buffer[DOUBLE_BUF];
-};
-
-struct s_timInfo
-{
-  u_short tpage;
-  u_short clut;
-};
-
-struct s_character
-{
-  SPRT sprite;
-  DR_TPAGE tpage;
-  struct s_timInfo timInfo;
-};
-
-struct s_background
-{
-  POLY_FT4 poly;
-  struct s_timInfo timInfo;
-};
-
-struct
+struct s_gamePad
 {
   struct
   {
@@ -110,17 +76,54 @@ struct
     u_char byte:8;
 	  
   } fourth;
-} g_pad[2];
+};
+
+struct s_environment
+{
+  int currBuff;
+  int prevBuff;
+  int otSize;
+  int bufSize;
+  
+  struct
+  {
+    unsigned long ot[OT_SIZE];
+    DISPENV disp;
+    DRAWENV draw;
+  } buffer[DOUBLE_BUF];
+  
+  struct
+  {
+    struct s_gamePad one;
+    struct s_gamePad two;
+  } gamePad;
+};
+
+struct s_timInfo
+{
+  u_short tpage;
+  u_short clut;
+};
+
+struct s_character
+{
+  SPRT sprite;
+  DR_TPAGE tpage;
+  struct s_timInfo timInfo;
+};
+
+struct s_background
+{
+  POLY_FT4 poly;
+  struct s_timInfo timInfo;
+};
+
 
 void initEnv(struct s_environment *p_env);
 void display(struct s_environment *p_env);
-
 struct s_timInfo getTIMinfo(u_long *p_address);
-
 void setBackground(struct s_environment *p_env, struct s_background *p_background, int pos);
-
 void setCharacter(struct s_environment *p_env, struct s_character *p_character, int pos);
-
 int animate(SPRT *p_sprite);
 
 int main() 
@@ -197,7 +200,7 @@ void initEnv(struct s_environment *p_env)
   FntLoad(960, 256); // load the font from the BIOS into VRAM/SGRAM
   SetDumpFnt(FntOpen(5, 20, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 512)); // screen X,Y | max text length X,Y | autmatic background clear 0,1 | max characters
   
-  PadInitDirect((u_char *)&g_pad[0], (u_char *)&g_pad[1]);
+  PadInitDirect((u_char *)&p_env->gamePad.one, (u_char *)&p_env->gamePad.two);
   PadStartCom();
   
   SetDispMask(1); 
@@ -261,7 +264,6 @@ void setCharacter(struct s_environment *p_env, struct s_character *p_character, 
   setXY0(&p_character->sprite, SCREEN_WIDTH / 2 - 32, SCREEN_HEIGHT / 2 - 32);
   setWH(&p_character->sprite, 64, 64);
   setRGB0(&p_character->sprite, 127,127,127);
-  
   setUV0(&p_character->sprite, 0, 0);
   
   AddPrim(&p_env->buffer[p_env->prevBuff].ot[pos], &p_character->sprite);

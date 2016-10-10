@@ -2,7 +2,17 @@
 
 #### Library: libgs.h (extended), libgpu.h (general), libgte.h (basic), libetc.h (Get/SetVideoMode)
 
-#### Example: controller, textureTest, textureTestCD, otMovSq, otTail
+#### Example: controller, textureTest, textureTestCD, otMovSq, otTail, sprite
+
+### Display Modes
+
+#### Interlaced, Non-Interlaced
+
+* Coming Soon
+
+#### Resolutions
+
+* Coming Soon
 
 ### Using Extended Graphics Libarary without ordering tables
 
@@ -100,6 +110,7 @@ Basic Graphics For the PlayStation, requires more setup, but its ordering tables
   * Sprite and Tile Primitives
   * Special Primitives
 * Defined as C Structs
+* They do mention that by flipping coordinates you can do a vertical and/or horizontal flip. 
 
 #### Functions
 * MargePrim(), Combines primitives
@@ -109,26 +120,48 @@ Basic Graphics For the PlayStation, requires more setup, but its ordering tables
 * SetXY*(), Set Size of the primitive
 * setXYWH(), Set Size of the primitive by x0, y0 position with a set width and heigth from that corridinate. 
 * SetUW*(), Set Size of texture
+* setUV*(), Set position of primitive in texture frame.
 * setRGB*(), Set color, usually set 0, but can also have more.
 * DrawPrim(), basic function to draw primitives if they are not in the ordering table.
 
 #### Sprites
 * Sprites in basic graphics library does not have an idea of a texture, it has to be added as a DR_TPAGE.
+* Easy way to create a moving sprite is to create a texture sheet with frames equally spaced, then move the sprite object to view a frame (cell) of animation in the order needed.
+  * This involves using setUV0() to change where the sprite is looking in the texture.
 
 ### Examples for Basic Graphics Library (libgte.h)
 #### Environment Struct
 ```
-struct s_environment{
-  unsigned long ot[OT_SIZE];
-  DISPENV disp;
-  DRAWENV draw;
+struct s_environment
+{
+  int currBuff;
+  int prevBuff;
+  int otSize;
+  int bufSize;
+  
+  struct
+  {
+    unsigned long ot[OT_SIZE];
+    DISPENV disp;
+    DRAWENV draw;
+  } buffer[DOUBLE_BUF];
+  
+  struct
+  {
+    struct s_gamePad one;
+    struct s_gamePad two;
+  } gamePad;
 };
 ```
 
-##### Setup Graphics and double buffer
+##### Setup Graphics, double buffer and Ordering Table
 ```
-void graphics(struct s_environment *p_env)
+void initEnv(struct s_environment *p_env)
 {
+  int index;
+  p_env->bufSize = DOUBLE_BUF;
+  p_env->otSize = OT_SIZE;
+  
   // within the BIOS, if the address 0xBFC7FF52 equals 'E', set it as PAL (1). Otherwise, set it as NTSC (0)
   switch(*(char *)0xbfc7ff52=='E')
   {
@@ -140,31 +173,39 @@ void graphics(struct s_environment *p_env)
       break;	
   }
   
-  //initialize graphics system, and mask display.
   ResetGraph(0);
+
+  for(index = 0; index < p_env->bufSize; index += 2) 
+  {
+    SetDefDispEnv(&p_env->buffer[index].disp, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    SetDefDrawEnv(&p_env->buffer[index].draw, 0, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
+  }
+
+  for(index = 1; index < p_env->bufSize; index += 2)
+  {
+    SetDefDispEnv(&p_env->buffer[index].disp, 0, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
+    SetDefDrawEnv(&p_env->buffer[index].draw, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+  }
+
+  for(index = 0; index < p_env->bufSize; index++)
+  {
+    p_env->buffer[index].draw.isbg = 1;
+    p_env->buffer[index].draw.r0 = 0;
+    p_env->buffer[index].draw.g0 = 0;
+    p_env->buffer[index].draw.b0 = 0;
+    
+    ClearOTag(p_env->buffer[index].ot, p_env->otSize);
+  }
   
-  //set first display buffer
-  SetDefDispEnv(&p_env[0].disp, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-  //set second display buffer to the draw buffer of the previous environment
-  SetDefDispEnv(&p_env[1].disp, 0, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
-  //set first draw buffer just below the display buffer
-  SetDefDrawEnv(&p_env[0].draw, 0, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
-  //set second draw buffer above its display buffer.
-  SetDefDrawEnv(&p_env[1].draw, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+  p_env->prevBuff = 0;
+  p_env->currBuff = 0;
   
-  //enable screen clearing on draw, set color to black
-  p_env[0].draw.isbg = 1;
-  p_env[0].draw.r0 = 0;
-  p_env[0].draw.g0 = 0;
-  p_env[0].draw.b0 = 0;
+  FntLoad(960, 256); // load the font from the BIOS into VRAM/SGRAM
+  SetDumpFnt(FntOpen(5, 20, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 512)); // screen X,Y | max text length X,Y | autmatic background clear 0,1 | max characters
   
-  //do the same for the other environment
-  p_env[1].draw.isbg = 1;
-  p_env[1].draw.r0 = 0;
-  p_env[1].draw.g0 = 0;
-  p_env[1].draw.b0 = 0;
+  PadInitDirect((u_char *)&p_env->gamePad.one, (u_char *)&p_env->gamePad.two);
+  PadStartCom();
   
-  //unmask the display
   SetDispMask(1); 
 }
 ```
@@ -172,42 +213,24 @@ void graphics(struct s_environment *p_env)
 ```
 void display(struct s_environment *p_env)
 {
-  static int currBuff = 0;
 
-  DrawSync(0);
+  p_env->prevBuff = p_env->currBuff;
+  
+  //avoid issues with delayed execution
+  while(DrawSync(1));
   VSync(0);
   
-  //swap buffers
-  currBuff = (currBuff + 1) % DUB_BUFFER;
-  PutDrawEnv(&p_env[currBuff].draw);
-  PutDispEnv(&p_env[currBuff].disp);
-  DrawOTag(p_env[currBuff].ot);
-}
-```
-
-##### Initialize Environemnt Struct and Ordering Table
-```
-void initEnv(struct s_environment *p_env, int numBuf, POLY_F4 *prim, int len)
-{ 
-  int index;
+  p_env->currBuff = (p_env->currBuff + 1) % p_env->bufSize;
   
-  for(index = 0; index < numBuf; index++)
-  {
-      ClearOTag(p_env[index].ot, len);
-  }
+  PutDrawEnv(&p_env->buffer[p_env->currBuff].draw);
+  PutDispEnv(&p_env->buffer[p_env->currBuff].disp);
   
-  for(index = 0; index < len; index++)
-  {
-    SetPolyF4(&prim[index]);
-    setRGB0(&prim[index], rand() % 256, rand() % 256, rand() % 256);
-    setXY4(&prim[index], 0, 0, 240 / (index + 1), 0, 0, 240 / (index + 1), 240 / (index + 1), 240 / (index + 1));
-    AddPrim(&(p_env[0].ot[index]), &prim[index]);
-  }
+  memcpy((u_char *)p_env->buffer[p_env->currBuff].ot, (u_char *)p_env->buffer[p_env->prevBuff].ot, OT_SIZE * sizeof(*(p_env->buffer[p_env->prevBuff].ot)));
   
-  for(index = 0; index < numBuf; index++)
-  {
-    memcpy((u_char *)p_env[index].ot, (u_char *)p_env[0].ot, len * sizeof(*(p_env[0].ot)));
-  }
+  DrawOTag(p_env->buffer[p_env->currBuff].ot);
+  
+  FntPrint("Sprite Example");
+  FntFlush(-1);
 }
 ```
  
