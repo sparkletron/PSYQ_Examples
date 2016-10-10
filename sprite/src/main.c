@@ -1,4 +1,9 @@
 /*
+ * Written By: John Convertino
+ * 
+ * Sprite test, sets a background and animates a running women.
+ * 
+ * No input control.
 */
 
 #include <stdlib.h>
@@ -48,8 +53,8 @@ struct s_gamePad
     struct
     {
       u_char select:1;
-      u_char NA2:1;
-      u_char NA1:1;
+      u_char na2:1;
+      u_char na1:1;
       u_char start:1;
       u_char up:1;
       u_char right:1;
@@ -64,10 +69,10 @@ struct s_gamePad
   {
     struct
     {
-      u_char L2:1;
-      u_char R2:1;
-      u_char L1:1;
-      u_char R1:1;
+      u_char l2:1;
+      u_char r2:1;
+      u_char l1:1;
+      u_char r1:1;
       u_char triangle:1;
       u_char circle:1;
       u_char ex:1;

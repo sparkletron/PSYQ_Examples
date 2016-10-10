@@ -51,8 +51,8 @@ struct s_gamePad
     struct
     {
       u_char select:1;
-      u_char NA2:1;
-      u_char NA1:1;
+      u_char na2:1;
+      u_char na1:1;
       u_char start:1;
       u_char up:1;
       u_char right:1;

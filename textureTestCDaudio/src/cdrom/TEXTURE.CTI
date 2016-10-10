@@ -63,7 +63,7 @@ Disc CDROMXA_PSX ;the disk format
 	
     Track  AUDIO
 	    Pause 	150
-	    Source	d:\tmp\data\AUDIO\test2.raw
+	    Source	d:\tmp\data\AUDIO\testl.raw
     EndTrack
     
     Leadout	AUDIO
