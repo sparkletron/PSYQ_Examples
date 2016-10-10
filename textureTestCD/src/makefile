@@ -1,4 +1,4 @@
-SOURCES = main.c
+SOURCES = main.c engine.c
 PSX_EXEC = MAIN.exe
 PSX_CC = CCPSX.EXE
 PSX_CPE2X = CPE2XWIN.EXE

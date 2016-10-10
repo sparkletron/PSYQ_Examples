@@ -20,7 +20,7 @@
 
 #define SCREEN_WIDTH  320 // screen width
 #define	SCREEN_HEIGHT 240 // screen height
-#define OT_SIZE       16 //size of ordering table
+#define OT_SIZE       2 //size of ordering table
 #define DOUBLE_BUF    2
 
 extern u_long __ramsize;  //  = 0x00200000;  force 2 megabytes of RAM
