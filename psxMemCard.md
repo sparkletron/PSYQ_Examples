@@ -57,11 +57,19 @@
 * MemCardWriteData(), Writes data to a file setup by open, to the memory card in 128 byte chunks (bytes must be a multiple of 128).
 * MemCardWriteFile(), Write data to a specified memory card file. Same byte requirement as above.
 
+##### Notes
+* You must stop controller communcation before accessing the memory card, or else you will not be able to read or write to it.
+  * When done, start controller communcation back up.
+  * PadStopCom(), stop communcation
+  * PadStartCom(), start communcation
+
 ### Example
 
 #### Writing to a Memory Card
 
 ```
+PadStopCom();
+
 MemCardInit(1);
 	
 MemCardStart();
@@ -101,10 +109,14 @@ if(MemCardSync(0, &cmds, &result) <= 0)
 MemCardClose();
 
 MemCardStop();
+
+PadStartCom()
 ```
 
 #### Reading from a Memory Card
 ```
+PadStopCom();
+
 MemCardInit(1);
 
 MemCardStart();
@@ -144,4 +156,6 @@ if(MemCardSync(0, &cmds, &result) <= 0)
 MemCardClose();
 
 MemCardStop();
+
+PadStartCom();
 ```
