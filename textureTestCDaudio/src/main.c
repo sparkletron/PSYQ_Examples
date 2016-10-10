@@ -16,6 +16,7 @@
 #include <libetc.h>
 #include <libgs.h>
 #include <libds.h>
+#include <libspu.h>
 
 #define SCREEN_WIDTH  320 // screen width
 #define	SCREEN_HEIGHT 240 // screen height
@@ -101,6 +102,8 @@ struct s_environment
     struct s_gamePad one;
     struct s_gamePad two;
   } gamePad;
+  
+  SpuCommonAttr soundAttr;
 };
 
 struct s_timInfo
@@ -118,6 +121,8 @@ void movSqr(struct s_environment *p_env, POLY_FT4 *p_primitive);
 
 int main() 
 {
+  int tracks[] = {1, 2, 0};
+  
   u_long *timImage = NULL;
   POLY_FT4 primitive[OT_SIZE];
   struct s_environment environment;
@@ -133,6 +138,13 @@ int main()
   primitive[0].clut = timInfo.clut;
   
   populateOT(&environment, primitive);
+  
+  if(DsPlay(2, tracks, 1) < 0)
+  {
+    printf("\nNo CD Track Playing\n");
+  }
+  
+  printf("\nCurrent Track: %d\n", DsPlay(3, tracks, 1));
 
   while (1) // draw and display forever
   {
@@ -159,6 +171,8 @@ void initEnv(struct s_environment *p_env)
       SetVideoMode(MODE_NTSC); 
       break;	
   }
+  
+  ResetCallback();
   
   ResetGraph(0);
 
@@ -190,8 +204,30 @@ void initEnv(struct s_environment *p_env)
   FntLoad(960, 256); // load the font from the BIOS into VRAM/SGRAM
   SetDumpFnt(FntOpen(5, 20, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 512)); // screen X,Y | max text length X,Y | autmatic background clear 0,1 | max characters
   
+  //CD init 
+  DsInit();
+  
+  //sound init
+  SpuInit();
+    
   PadInitDirect((u_char *)&p_env->gamePad.one, (u_char *)&p_env->gamePad.two);
   PadStartCom();
+  
+  //setup volume and cd into mix
+  p_env->soundAttr.mask = (SPU_COMMON_MVOLL | SPU_COMMON_MVOLR | SPU_COMMON_CDVOLL | SPU_COMMON_CDVOLR | SPU_COMMON_CDMIX);
+  
+  p_env->soundAttr.mvol.left = 0x1FFF;
+  p_env->soundAttr.mvol.right = 0x1FFF;
+  
+  p_env->soundAttr.cd.volume.left = 0x1FFF;
+  p_env->soundAttr.cd.volume.right = 0x1FFF;
+  
+  p_env->soundAttr.cd.mix = SPU_ON;
+  
+  //set the spu attributes
+  SpuSetCommonAttr(&p_env->soundAttr);
+  
+  SpuSetTransferMode(SPU_TRANSFER_BY_DMA);
   
   SetDispMask(1); 
 }
@@ -228,9 +264,6 @@ u_long *loadTIMfromCD(char *p_path)
   
   DslFILE fileInfo;
   u_long *image = NULL;
-  
-  //CD init 
-  DsInit();
   
   if(DsSearchFile(&fileInfo, p_path) <= 0)
   {
@@ -271,8 +304,6 @@ u_long *loadTIMfromCD(char *p_path)
   while(numRemain);
 
   printf("\nREAD COMPLETE\n");
-  
-  DsClose();
   
   return image;
 }

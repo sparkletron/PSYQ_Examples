@@ -131,3 +131,48 @@ setXY4(&f4, 0, 0, 50, 0, 0, 50, 50, 50);
 setUV4(&f4, 0, 0, 50, 0, 0, 50, 50, 50);
 
 ```
+
+##### Populate Texture Page Function
+```
+void populateTPage(struct s_environment *p_env, u_long *p_address[], int len)
+{
+  int index;
+  int buffIndex;
+  
+  for(index = 0; (index < len) && (index < p_env->otSize); index++)
+  {
+    p_env->timInfo[index] = getTIMinfo(p_address[index]);
+  }
+  
+  for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
+  {
+    for(index = 0; (index < len) && (index < p_env->otSize); index++)
+    {
+      p_env->buffer[buffIndex].primitive[index].tpage = p_env->timInfo[index].tpage;
+      p_env->buffer[buffIndex].primitive[index].clut = p_env->timInfo[index].clut;
+    }
+  }
+}
+```
+
+##### Load Texture Page Function
+```
+struct s_timInfo
+{
+  u_short tpage;
+  u_short clut;
+};
+
+struct s_timInfo getTIMinfo(u_long *p_address)
+{
+  struct s_timInfo timInfo;
+  GsIMAGE timData;
+  
+  GsGetTimInfo(p_address+1, &timData);
+  
+  timInfo.tpage = LoadTPage(timData.pixel, timData.pmode, 0, timData.px, timData.py, timData.pw, timData.ph);
+  timInfo.clut = LoadClut(timData.clut, timData.cx, timData.cy);
+  
+  return timInfo;
+}
+```

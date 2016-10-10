@@ -70,6 +70,7 @@ Basic Graphics For the PlayStation, requires more setup, but its ordering tables
 * Ordering table (OT) used as packet buffer. 
 * CPU registers OT, GPU draws.
 * One OT for registering, the other for drawing, double buffer setup.
+* MUST use seprate primitives, store the info for them else where.
 
 #### Primitive Rendering Speed
 
@@ -132,15 +133,29 @@ Basic Graphics For the PlayStation, requires more setup, but its ordering tables
 ### Examples for Basic Graphics Library (libgte.h)
 #### Environment Struct
 ```
+struct s_timInfo
+{
+  u_short tpage;
+  u_short clut;
+};
+
 struct s_environment
 {
   int currBuff;
   int prevBuff;
   int otSize;
   int bufSize;
+  int px[OT_SIZE];
+  int py[OT_SIZE];
+  int pw[OT_SIZE];
+  int ph[OT_SIZE];
+  int r0[OT_SIZE];
+  int g0[OT_SIZE];
+  int b0[OT_SIZE];
   
   struct
   {
+    POLY_FT4 primitive[OT_SIZE];
     unsigned long ot[OT_SIZE];
     DISPENV disp;
     DRAWENV draw;
@@ -151,6 +166,8 @@ struct s_environment
     struct s_gamePad one;
     struct s_gamePad two;
   } gamePad;
+  
+  struct s_timInfo timInfo[OT_SIZE];
 };
 ```
 
@@ -225,12 +242,101 @@ void display(struct s_environment *p_env)
   PutDrawEnv(&p_env->buffer[p_env->currBuff].draw);
   PutDispEnv(&p_env->buffer[p_env->currBuff].disp);
   
-  memcpy((u_char *)p_env->buffer[p_env->currBuff].ot, (u_char *)p_env->buffer[p_env->prevBuff].ot, OT_SIZE * sizeof(*(p_env->buffer[p_env->prevBuff].ot)));
-  
   DrawOTag(p_env->buffer[p_env->currBuff].ot);
   
-  FntPrint("Sprite Example");
+  FntPrint("Texture Example\nLoad From Header");
   FntFlush(-1);
 }
 ```
- 
+
+##### Populate Ordering Tables
+```
+void populateOT(struct s_environment *p_env)
+{
+  int index;
+  int buffIndex; 
+  
+  for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
+  {
+    for(index = 0; index < p_env->otSize; index++)
+    {
+      p_env->px[index] = 0;
+      p_env->py[index] = 0;
+      p_env->pw[index] = 50;
+      p_env->ph[index] = 50;
+      p_env->r0[index] = 127;
+      p_env->g0[index] = 127;
+      p_env->b0[index] = 127;
+      
+      SetPolyFT4(&p_env->buffer[buffIndex].primitive[index]);
+      setRGB0(&p_env->buffer[buffIndex].primitive[index], p_env->r0[index], p_env->g0[index], p_env->b0[index]);
+      setXYWH(&p_env->buffer[buffIndex].primitive[index], p_env->px[index], p_env->py[index], p_env->pw[index], p_env->ph[index]);
+      setUVWH(&p_env->buffer[buffIndex].primitive[index], p_env->px[index], p_env->py[index], p_env->pw[index], p_env->ph[index]);
+      AddPrim(&(p_env->buffer[buffIndex].ot[index]), &(p_env->buffer[buffIndex].primitive[index]));
+    }
+  }
+}
+```
+##### Update Primitives With Common Values
+```
+void movSqr(struct s_environment *p_env)
+{
+  static int prevTime = 0;
+  static int primNum = 0;
+  
+  if(p_env->gamePad.one.fourth.bit.ex == 0)
+  {
+    if(prevTime == 0 || ((VSync(-1) - prevTime) > 60))
+    {
+      p_env->r0[primNum] = rand() % 256;
+      p_env->g0[primNum] = rand() % 256;
+      p_env->b0[primNum] = rand() % 256;
+      prevTime = VSync(-1);
+    }
+  }
+  
+  if(p_env->gamePad.one.fourth.bit.circle == 0)
+  {
+    if(prevTime == 0 || ((VSync(-1) - prevTime) > 60))
+    {
+      primNum = (primNum + 1) % p_env->otSize;
+      prevTime = VSync(-1);
+    }
+  }
+  
+  if(p_env->gamePad.one.third.bit.up == 0)
+  {
+    if(p_env->py[primNum] > 0)
+    {
+      p_env->py[primNum] -= 1;
+    }
+  }
+  
+  if(p_env->gamePad.one.third.bit.right == 0)
+  {
+    if((p_env->px[primNum] + 50) < SCREEN_WIDTH)
+    {
+      p_env->px[primNum] += 1;
+    }
+  }
+  
+  if(p_env->gamePad.one.third.bit.down == 0)
+  {
+    if((p_env->py[primNum] + 50) < SCREEN_HEIGHT)
+    {
+      p_env->py[primNum] += 1;
+    }
+  }
+  
+  if(p_env->gamePad.one.third.bit.left == 0)
+  {
+    if(p_env->px[primNum] > 0)
+    {
+      p_env->px[primNum] -= 1;
+    }
+  }
+  
+  setRGB0(&p_env->buffer[p_env->prevBuff].primitive[primNum], p_env->r0[primNum], p_env->g0[primNum], p_env->b0[primNum]);
+  setXYWH(&p_env->buffer[p_env->prevBuff].primitive[primNum], p_env->px[primNum], p_env->py[primNum], p_env->pw[primNum], p_env->ph[primNum]);
+}
+```

@@ -17,7 +17,7 @@
 
 #define SCREEN_WIDTH  320 // screen width
 #define	SCREEN_HEIGHT 240 // screen height
-#define OT_SIZE       1 //size of ordering table
+#define OT_SIZE       2 //size of ordering table
 #define DOUBLE_BUF    2
 
 u_long __ramsize   = 0x00200000; // force 2 megabytes of RAM
@@ -82,15 +82,29 @@ struct s_gamePad
   } fourth;
 };
 
+struct s_timInfo
+{
+  u_short tpage;
+  u_short clut;
+};
+
 struct s_environment
 {
   int currBuff;
   int prevBuff;
   int otSize;
   int bufSize;
+  int px[OT_SIZE];
+  int py[OT_SIZE];
+  int pw[OT_SIZE];
+  int ph[OT_SIZE];
+  int r0[OT_SIZE];
+  int g0[OT_SIZE];
+  int b0[OT_SIZE];
   
   struct
   {
+    POLY_FT4 primitive[OT_SIZE];
     unsigned long ot[OT_SIZE];
     DISPENV disp;
     DRAWENV draw;
@@ -101,39 +115,32 @@ struct s_environment
     struct s_gamePad one;
     struct s_gamePad two;
   } gamePad;
-};
-
-struct s_timInfo
-{
-  u_short tpage;
-  u_short clut;
+  
+  struct s_timInfo timInfo[OT_SIZE];
 };
 
 void initEnv(struct s_environment *p_env);
 void display(struct s_environment *p_env);
 struct s_timInfo getTIMinfo(u_long *p_address);
-void populateOT(struct s_environment *p_env, POLY_FT4 *p_primitive);
-void movSqr(struct s_environment *p_env, POLY_FT4 *p_primitive);
+void populateTPage(struct s_environment *p_env, u_long *p_address[], int len);
+void populateOT(struct s_environment *p_env);
+void movSqr(struct s_environment *p_env);
 
 int main() 
 {
-  POLY_FT4 primitive[OT_SIZE];
+  u_long *p_address[] = {(u_long *)e_image, (u_long *)e_image};
   struct s_environment environment;
-  struct s_timInfo timInfo;
-  
+
   initEnv(&environment); // setup the graphics (seen below)
   
-  timInfo = getTIMinfo((u_long *)e_image);
+  populateTPage(&environment, p_address, environment.otSize);
   
-  primitive[0].tpage = timInfo.tpage;
-  primitive[0].clut = timInfo.clut;
-  
-  populateOT(&environment, primitive);
+  populateOT(&environment);
 
   while (1) // draw and display forever
   {
     display(&environment);
-    movSqr(&environment, primitive);
+    movSqr(&environment);
   }
 
   return 0;
@@ -207,8 +214,6 @@ void display(struct s_environment *p_env)
   PutDrawEnv(&p_env->buffer[p_env->currBuff].draw);
   PutDispEnv(&p_env->buffer[p_env->currBuff].disp);
   
-  memcpy((u_char *)p_env->buffer[p_env->currBuff].ot, (u_char *)p_env->buffer[p_env->prevBuff].ot, OT_SIZE * sizeof(*(p_env->buffer[p_env->prevBuff].ot)));
-  
   DrawOTag(p_env->buffer[p_env->currBuff].ot);
   
   FntPrint("Texture Example\nLoad From Header");
@@ -228,21 +233,54 @@ struct s_timInfo getTIMinfo(u_long *p_address)
   return timInfo;
 }
 
-void populateOT(struct s_environment *p_env, POLY_FT4 *p_primitive)
+void populateTPage(struct s_environment *p_env, u_long *p_address[], int len)
 {
   int index;
+  int buffIndex;
   
-  for(index = 0; index < p_env->otSize; index++)
+  for(index = 0; (index < len) && (index < p_env->otSize); index++)
   {
-    SetPolyFT4(&p_primitive[index]);
-    setRGB0(&p_primitive[index], 127, 127, 127);
-    setXYWH(&p_primitive[index], 0, 0, 50, 50);
-    setUVWH(&p_primitive[index], 0, 0, 50, 50);
-    AddPrim(&(p_env->buffer[p_env->prevBuff].ot[index]), &p_primitive[index]);
+    p_env->timInfo[index] = getTIMinfo(p_address[index]);
+  }
+  
+  for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
+  {
+    for(index = 0; (index < len) && (index < p_env->otSize); index++)
+    {
+      p_env->buffer[buffIndex].primitive[index].tpage = p_env->timInfo[index].tpage;
+      p_env->buffer[buffIndex].primitive[index].clut = p_env->timInfo[index].clut;
+    }
+  }
+  
+}
+
+void populateOT(struct s_environment *p_env)
+{
+  int index;
+  int buffIndex; 
+  
+  for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
+  {
+    for(index = 0; index < p_env->otSize; index++)
+    {
+      p_env->px[index] = 0;
+      p_env->py[index] = 0;
+      p_env->pw[index] = 50;
+      p_env->ph[index] = 50;
+      p_env->r0[index] = 127;
+      p_env->g0[index] = 127;
+      p_env->b0[index] = 127;
+      
+      SetPolyFT4(&p_env->buffer[buffIndex].primitive[index]);
+      setRGB0(&p_env->buffer[buffIndex].primitive[index], p_env->r0[index], p_env->g0[index], p_env->b0[index]);
+      setXYWH(&p_env->buffer[buffIndex].primitive[index], p_env->px[index], p_env->py[index], p_env->pw[index], p_env->ph[index]);
+      setUVWH(&p_env->buffer[buffIndex].primitive[index], p_env->px[index], p_env->py[index], p_env->pw[index], p_env->ph[index]);
+      AddPrim(&(p_env->buffer[buffIndex].ot[index]), &(p_env->buffer[buffIndex].primitive[index]));
+    }
   }
 }
 
-void movSqr(struct s_environment *p_env, POLY_FT4 *p_primitive)
+void movSqr(struct s_environment *p_env)
 {
   static int prevTime = 0;
   static int primNum = 0;
@@ -251,9 +289,9 @@ void movSqr(struct s_environment *p_env, POLY_FT4 *p_primitive)
   {
     if(prevTime == 0 || ((VSync(-1) - prevTime) > 60))
     {
-      p_primitive[primNum].r0 = rand() % 256;
-      p_primitive[primNum].g0 = rand() % 256;
-      p_primitive[primNum].b0 = rand() % 256;
+      p_env->r0[primNum] = rand() % 256;
+      p_env->g0[primNum] = rand() % 256;
+      p_env->b0[primNum] = rand() % 256;
       prevTime = VSync(-1);
     }
   }
@@ -262,52 +300,43 @@ void movSqr(struct s_environment *p_env, POLY_FT4 *p_primitive)
   {
     if(prevTime == 0 || ((VSync(-1) - prevTime) > 60))
     {
-      primNum = (primNum + 1) % OT_SIZE;
+      primNum = (primNum + 1) % p_env->otSize;
       prevTime = VSync(-1);
     }
   }
   
   if(p_env->gamePad.one.third.bit.up == 0)
   {
-    if(p_primitive[primNum].y0 > 0)
+    if(p_env->py[primNum] > 0)
     {
-      p_primitive[primNum].y0 -= 1;
-      p_primitive[primNum].y1 -= 1;
-      p_primitive[primNum].y2 -= 1;
-      p_primitive[primNum].y3 -= 1;
+      p_env->py[primNum] -= 1;
     }
   }
   
   if(p_env->gamePad.one.third.bit.right == 0)
   {
-    if(p_primitive[primNum].x1 < SCREEN_WIDTH)
+    if((p_env->px[primNum] + 50) < SCREEN_WIDTH)
     {
-      p_primitive[primNum].x0 += 1;
-      p_primitive[primNum].x1 += 1;
-      p_primitive[primNum].x2 += 1;
-      p_primitive[primNum].x3 += 1;
+      p_env->px[primNum] += 1;
     }
   }
   
   if(p_env->gamePad.one.third.bit.down == 0)
   {
-    if(p_primitive[primNum].y2 < SCREEN_HEIGHT)
+    if((p_env->py[primNum] + 50) < SCREEN_HEIGHT)
     {
-      p_primitive[primNum].y0 += 1;
-      p_primitive[primNum].y1 += 1;
-      p_primitive[primNum].y2 += 1;
-      p_primitive[primNum].y3 += 1;
+      p_env->py[primNum] += 1;
     }
   }
   
   if(p_env->gamePad.one.third.bit.left == 0)
   {
-    if(p_primitive[primNum].x0 > 0)
+    if(p_env->px[primNum] > 0)
     {
-      p_primitive[primNum].x0 -= 1;
-      p_primitive[primNum].x1 -= 1;
-      p_primitive[primNum].x2 -= 1;
-      p_primitive[primNum].x3 -= 1;
+      p_env->px[primNum] -= 1;
     }
   }
+  
+  setRGB0(&p_env->buffer[p_env->prevBuff].primitive[primNum], p_env->r0[primNum], p_env->g0[primNum], p_env->b0[primNum]);
+  setXYWH(&p_env->buffer[p_env->prevBuff].primitive[primNum], p_env->px[primNum], p_env->py[primNum], p_env->pw[primNum], p_env->ph[primNum]);
 }
