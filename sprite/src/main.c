@@ -209,7 +209,6 @@ void initEnv(struct s_environment *p_env)
 
 void display(struct s_environment *p_env)
 {
-
   p_env->prevBuff = p_env->currBuff;
   
   //avoid issues with delayed execution
