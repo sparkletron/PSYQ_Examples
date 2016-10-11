@@ -93,7 +93,11 @@ Basic Graphics For the PlayStation, requires more setup, but its ordering tables
 
 * Ordering Table can have primitives added to it that serve special functions, such as what to draw (gets added to the primitive at a position you choose in the ordering table).
 * Primitives are drawn from the first to last, 0 to array size.
-* Z axis sorting is available, but I haven't taken a hard look at it yet.
+* Z axis sorting is available, based on the order of the ordering table
+  * primitives can be linked in a list to form primitives at the same level (tag option).
+  * addPrim does this automatically if you add primitives to the same ordering table location.
+  * RotTransPers(), performs coordinate and persepective transformation.
+  * see psxGeometry.md for geometry info.
 
 ### Primitives
 
