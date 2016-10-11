@@ -80,19 +80,20 @@ Basic Graphics For the PlayStation, requires more setup, but its ordering tables
 #### Notes
 * Display and Drawing environments point to where we are performing operations in memory. When we switch, we are chaning locations, so now the display buffer will point to where the draw buffer was. This means that one set has a set of corridinates, and the other set are set to there opposities. See "Setup Graphics and double buffer" for an example.
 
-### Ordering Tables
+### Ordering Tables and Z Sorting
 
 #### Basic Usage
 
 * GTE ordering table is defined as an array of unsigned longs
 * ClearOTag(), creates the linked list of primitives, must be called first to initialize the ordering table.
+* Clear0TagR(), same as above but deals with lists that have been z sorted, 0 is closer and the end of the list is farthest, opposite of how how the ordering table is drawn. (last on top)
 * AddPrim(), adds a primitive to the ordering table.
 * DrawOTag(), executes list of primitives for drawing.
 
 #### Info
 
 * Ordering Table can have primitives added to it that serve special functions, such as what to draw (gets added to the primitive at a position you choose in the ordering table).
-* Primitives are drawn from the first to last, 0 to array size.
+* Primitives are drawn from the first to last, 0 to ordering table size. Meaning the last one drawn is on top.
 * Z axis sorting is available, based on the order of the ordering table
   * primitives can be linked in a list to form primitives at the same level (tag option).
   * addPrim does this automatically if you add primitives to the same ordering table location.
@@ -103,6 +104,11 @@ Basic Graphics For the PlayStation, requires more setup, but its ordering tables
 
 #### Basic Info
 
+* Can be linked together, useful when z sorting.
+  * Can be used to keep a group above anthor in the ordering table.
+  * tag is the member used for linking.
+  * Can link in things such as texture pages for sprites to set the texture.
+  * Manualy link or add anthor primitive to the ordering table in the same location as the previous
 * Smallest drawing command for the graphics system is called a primitive (or packet). 
 * Two types of primitives
   * Drawing Primitives: Drawn on screen (Poly, line, Sprites, tiles)
