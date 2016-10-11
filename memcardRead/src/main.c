@@ -8,16 +8,15 @@
 
 int main() 
 {
+  char *p_title = "Memory Card Read Example\nREAD:";
   struct s_environment environment;
   
   initEnv(&environment, 0); // setup the graphics (seen below)
   
-  environment.envMessage.p_title = malloc(128);
+  environment.envMessage.p_title = p_title;
   environment.envMessage.p_message = memoryCardRead();
-  environment.envMessage.p_data = NULL;
+  environment.envMessage.p_data = (int *)&environment.gamePad.one;
 
-  memcpy(environment.envMessage.p_title, "Memory Card Read Example\nREAD:", 128);
-  
   while (1) // draw and display forever
   {
     display(&environment);

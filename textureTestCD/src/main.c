@@ -15,16 +15,15 @@ void createGameObjects(struct s_environment *p_env);
 
 int main() 
 {
+  char *p_title = "Texture Example\nLoaded From CD\n";
   u_long *p_address[2];
   struct s_environment environment;
 
   initEnv(&environment, 2); // setup the graphics (seen below)
   
-  environment.envMessage.p_data = NULL;
+  environment.envMessage.p_data = (int *)&environment.gamePad.one;
   environment.envMessage.p_message = NULL;
-  environment.envMessage.p_title = malloc(128);
-  
-  memcpy(environment.envMessage.p_title, "Texture Example\nLoaded From CD\n", 128);
+  environment.envMessage.p_title = p_title;
   
   createGameObjects(&environment);
   

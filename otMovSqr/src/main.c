@@ -13,17 +13,16 @@ void createGameObjects(struct s_environment *p_env);
 
 int main() 
 {
+  char *p_title = "Ordering Table Example\nMoving Square";
   struct s_environment environment;
   
   initEnv(&environment, 6); // setup the graphics (seen below)
 
   createGameObjects(&environment);
   
-  environment.envMessage.p_title = malloc(128);
+  environment.envMessage.p_title = p_title;
   environment.envMessage.p_message = NULL;
   environment.envMessage.p_data = (int *)&environment.gamePad.one;
-  
-  memcpy(environment.envMessage.p_title, "Ordering Table Example\nMoving Square", 128);
   
   populateOT(&environment);
 

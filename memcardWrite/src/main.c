@@ -8,18 +8,17 @@
 
 int main() 
 {
+  char *p_title = "Memory Card Write Example\nWROTE:";
+  char *p_message = "I LOVE YOU SO MUCH LONG TIME";
   struct s_environment environment;
   
   initEnv(&environment, 0); // setup the graphics (seen below)
   
-  environment.envMessage.p_title = malloc(128);
-  environment.envMessage.p_message = malloc(128);
-  environment.envMessage.p_data = NULL;
+  environment.envMessage.p_title = p_title;
+  environment.envMessage.p_message = p_message;
+  environment.envMessage.p_data = (int *)&environment.gamePad.one;;
   
-  memcpy(environment.envMessage.p_title, "MEMORY CARD WRITE EXAMPLE\nWROTE:", 128);
-  memcpy(environment.envMessage.p_message, "I LOVE YOU TOO", 128);
-  
-  memoryCardWrite(environment.envMessage.p_message);
+  memoryCardWrite(p_message);
 
   while (1) // draw and display forever
   {

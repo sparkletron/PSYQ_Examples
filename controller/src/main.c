@@ -13,7 +13,7 @@ void createGameObjects(struct s_environment *p_env);
 
 int main() 
 {
-
+  char *p_title = "Controller Example";
   struct s_environment environment;
   
   initEnv(&environment, 3); // setup the graphics (seen below)
@@ -22,9 +22,7 @@ int main()
   
   environment.envMessage.p_message = NULL;
   environment.envMessage.p_data = (int *)&environment.gamePad.one;
-  environment.envMessage.p_title = malloc(128);
-  
-  memcpy(environment.envMessage.p_title, "Controller Example", 128);
+  environment.envMessage.p_title = p_title;
   
   populateOT(&environment);
 
