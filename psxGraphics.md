@@ -8,11 +8,26 @@
 
 #### Interlaced, Non-Interlaced
 
-* Coming Soon
+* Interlaced mode allows for the same frame rate but every other line is drawn each time.
+  * Even lines, next Vsync, Odd Lines
+  * Set interlace mode by setting isinter to 1
+    * Set automatically for a heigth of 480
+      * Otherwise double buffering will be impossible
 
 #### Resolutions
 
-* Coming Soon
+* Display Area has these modes:
+  * Width of 256, 320, 360, 512, or 640.
+  * Height of 240 or 480.
+    * 480 Height, automatically interlaced, switch between lines becomes double buffer.
+* Screen Area can specifiy the area actually show.
+  * Standard of (0,0) to (256, 240)
+  * Smaller Underscan, larger, overscan
+  * Width can not be set to anything greater than 256.
+  * Pixel size does not change
+* 24-Bit mode flag exists in the display environment variable
+  * variable name: isrgb24
+  * set to 1 to enable 24 bit mode instead of 16 bit.
 
 ### Using Extended Graphics Libarary without ordering tables
 
