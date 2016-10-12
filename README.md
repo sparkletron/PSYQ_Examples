@@ -11,11 +11,12 @@ Toolkit is PSYQ, available at [psxdev.net](http://www.psxdev.net/downloads.html)
 ### Files
 
 * psxCDcreate.md   = Create a ISO image
+* psxCDread.md     = Read Data from a cd (or play audio)
 * psxController.md = Access Controller
+* psxGeometry.md   = Depth sorting, Polygons
 * psxGraphics.md   = Graphics Info
 * psxMemCard.md    = Memory Card Usage
 * psxTextures.md   = Texture Loading
-* psxCDread.md     = Read Data from a cd (or play audio)
 
 #### Requirements
 
