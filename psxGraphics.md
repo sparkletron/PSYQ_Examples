@@ -114,6 +114,7 @@ Basic Graphics For the PlayStation, requires more setup, but its ordering tables
   * addPrim does this automatically if you add primitives to the same ordering table location.
   * RotTransPers(), performs coordinate and persepective transformation.
   * see psxGeometry.md for geometry info.
+* You may add primitives at any position, you can skip at any position.
 
 ### Primitives
 
