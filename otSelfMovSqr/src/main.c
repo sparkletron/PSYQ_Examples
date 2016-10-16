@@ -10,7 +10,7 @@
 #include "engine.h"
 
 void createGameObjects(struct s_environment *p_env);
-void movRandom(struct s_environment *p_env);
+void movChase(struct s_environment *p_env);
 void movPlayer(struct s_environment *p_env);
 
 int main() 
@@ -30,7 +30,7 @@ int main()
 
   while (1) // draw and display forever
   {
-    movRandom(&environment);
+    movChase(&environment);
     movPlayer(&environment);
     updatePrim(&environment);
     display(&environment);
@@ -46,13 +46,13 @@ void createGameObjects(struct s_environment *p_env)
   
   for(index = 0; index < p_env->otSize; index++)
   {
-    p_env->p_primParam[index].px = (SCREEN_WIDTH - 50) * index;
-    p_env->p_primParam[index].py = (SCREEN_HEIGHT - 50) * index;
-    p_env->p_primParam[index].pw = 50;
-    p_env->p_primParam[index].ph = 50;
-    p_env->p_primParam[index].r0 = rand() % 256;
-    p_env->p_primParam[index].g0 = rand() % 256;
-    p_env->p_primParam[index].b0 = rand() % 256;
+    p_env->p_primParam[index].vertex0.x = (SCREEN_WIDTH - 50) * index;
+    p_env->p_primParam[index].vertex0.y = (SCREEN_HEIGHT - 50) * index;
+    p_env->p_primParam[index].primSize.w = 50;
+    p_env->p_primParam[index].primSize.h = 50;
+    p_env->p_primParam[index].color0.r = rand() % 256;
+    p_env->p_primParam[index].color0.g = rand() % 256;
+    p_env->p_primParam[index].color0.b = rand() % 256;
     p_env->p_primParam[index].type = TYPE_F4;
     
     for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
@@ -62,89 +62,54 @@ void createGameObjects(struct s_environment *p_env)
   }
 }
 
-void movRandom(struct s_environment *p_env)
+void movChase(struct s_environment *p_env)
 { 
-  static int prevTime = 0;
-  
-  static int up = 0;
-  static int left = 0;
-  static int right = 0;
-  static int down = 0;
-  
-  if((abs(p_env->p_primParam[1].py - p_env->p_primParam[0].py) + 25 < 50) && (abs(p_env->p_primParam[1].px - p_env->p_primParam[0].px) + 25 < 50))
+  if((abs(p_env->p_primParam[1].vertex0.y - p_env->p_primParam[0].vertex0.y) + 25 < 50) && (abs(p_env->p_primParam[1].vertex0.x - p_env->p_primParam[0].vertex0.x) + 25 < 50))
   {
     return;
   }
   
-  if((abs(p_env->p_primParam[1].py - p_env->p_primParam[0].py) + 25 < 75) && (abs(p_env->p_primParam[1].px - p_env->p_primParam[0].px) + 25 < 75))
+  if((abs(p_env->p_primParam[1].vertex0.y - p_env->p_primParam[0].vertex0.y) + 25 < 75) && (abs(p_env->p_primParam[1].vertex0.x - p_env->p_primParam[0].vertex0.x) + 25 < 75))
   {
-    p_env->p_primParam[0].r0 = 255;
-    p_env->p_primParam[0].g0 = 0;
-    p_env->p_primParam[0].b0 = 0;
+    p_env->p_primParam[0].color0.r = 255;
+    p_env->p_primParam[0].color0.g = 0;
+    p_env->p_primParam[0].color0.b = 0;
   }
   else
   {
-    p_env->p_primParam[0].r0 = 0;
-    p_env->p_primParam[0].g0 = 0;
-    p_env->p_primParam[0].b0 = 255;
+    p_env->p_primParam[0].color0.r = 0;
+    p_env->p_primParam[0].color0.g = 0;
+    p_env->p_primParam[0].color0.b = 255;
   }
   
-  if(prevTime == 0 || ((VSync(-1) - prevTime) > 5))
+
+  if(p_env->p_primParam[1].vertex0.y > p_env->p_primParam[0].vertex0.y)
   {
-    prevTime = VSync(-1);
-    
-    if(p_env->p_primParam[1].py > p_env->p_primParam[0].py)
+    if((p_env->p_primParam[0].vertex0.y + p_env->p_primParam[0].primSize.h) < SCREEN_HEIGHT)
     {
-      up = 0;
-      down = 1;
+      p_env->p_primParam[0].vertex0.y += 1;
     }
-    else
+  }
+  else
+  {
+    if(p_env->p_primParam[0].vertex0.y > 0)
     {
-      up = 1;
-      down = 0;
-    }
-    
-    if(p_env->p_primParam[1].px > p_env->p_primParam[0].px)
-    {
-      right = 1;
-      left = 0;
-    }
-    else
-    {
-      right = 0;
-      left = 1;
+      p_env->p_primParam[0].vertex0.y -= 1;
     }
   }
   
-  if(up)
+  if(p_env->p_primParam[1].vertex0.x > p_env->p_primParam[0].vertex0.x)
   {
-    if(p_env->p_primParam[0].py > 0)
+    if((p_env->p_primParam[0].vertex0.x + p_env->p_primParam[0].primSize.w) < SCREEN_WIDTH)
     {
-      p_env->p_primParam[0].py -= 1;
+      p_env->p_primParam[0].vertex0.x += 1;
     }
   }
-  
-  if(right)
+  else
   {
-    if((p_env->p_primParam[0].px + p_env->p_primParam[0].pw) < SCREEN_WIDTH)
+    if(p_env->p_primParam[0].vertex0.x > 0)
     {
-      p_env->p_primParam[0].px += 1;
-    }
-  }
-  
-  if(down)
-  {
-    if((p_env->p_primParam[0].py + p_env->p_primParam[0].ph) < SCREEN_HEIGHT)
-    {
-      p_env->p_primParam[0].py += 1;
-    }
-  }
-  
-  if(left)
-  {
-    if(p_env->p_primParam[0].px > 0)
-    {
-      p_env->p_primParam[0].px -= 1;
+      p_env->p_primParam[0].vertex0.x -= 1;
     }
   }
 }
@@ -155,42 +120,42 @@ void movPlayer(struct s_environment *p_env)
   {
     if(p_env->prevTime == 0 || ((VSync(-1) - p_env->prevTime) > 60))
     {
-      p_env->p_primParam[1].r0 = rand() % 256;
-      p_env->p_primParam[1].g0 = rand() % 256;
-      p_env->p_primParam[1].b0 = rand() % 256;
+      p_env->p_primParam[1].color0.r = rand() % 256;
+      p_env->p_primParam[1].color0.g = rand() % 256;
+      p_env->p_primParam[1].color0.b = rand() % 256;
       p_env->prevTime = VSync(-1);
     }
   }
   
   if(p_env->gamePad.one.third.bit.up == 0)
   {
-    if(p_env->p_primParam[1].py > 0)
+    if(p_env->p_primParam[1].vertex0.y > 0)
     {
-      p_env->p_primParam[1].py -= 2;
+      p_env->p_primParam[1].vertex0.y -= 2;
     }
   }
   
   if(p_env->gamePad.one.third.bit.right == 0)
   {
-    if((p_env->p_primParam[1].px + p_env->p_primParam[1].pw) < SCREEN_WIDTH)
+    if((p_env->p_primParam[1].vertex0.x + p_env->p_primParam[1].primSize.w) < SCREEN_WIDTH)
     {
-      p_env->p_primParam[1].px += 2;
+      p_env->p_primParam[1].vertex0.x += 2;
     }
   }
   
   if(p_env->gamePad.one.third.bit.down == 0)
   {
-    if((p_env->p_primParam[1].py + p_env->p_primParam[1].ph) < SCREEN_HEIGHT)
+    if((p_env->p_primParam[1].vertex0.y + p_env->p_primParam[1].primSize.h) < SCREEN_HEIGHT)
     {
-      p_env->p_primParam[1].py += 2;
+      p_env->p_primParam[1].vertex0.y += 2;
     }
   }
   
   if(p_env->gamePad.one.third.bit.left == 0)
   {
-    if(p_env->p_primParam[1].px > 0)
+    if(p_env->p_primParam[1].vertex0.x > 0)
     {
-      p_env->p_primParam[1].px -= 2;
+      p_env->p_primParam[1].vertex0.x -= 2;
     }
   }
 }

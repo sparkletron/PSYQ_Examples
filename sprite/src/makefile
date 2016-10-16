@@ -1,10 +1,11 @@
-SOURCES = main.c engine.c
+SOURCES = main.c
+HEADERS = ../../engine
 PSX_EXEC = spriteTest.exe
 PSX_CC = CCPSX.EXE
 PSX_CPE2X = CPE2XWIN.EXE
 PSX_CFLAGS = -O3 -Dpsx -c
 PSX_ADDRESS = 0x80010000
-PSX_LDFLAGS =  -l libpad -l libmcrd -l libds -Xo$(PSX_ADDRESS)
+PSX_LDFLAGS =  -l libpad -l libmcrd -l libds -l libeng -L ../../engine -Xo$(PSX_ADDRESS)
 PSX_OBJECTS = $(SOURCES:.c=.obj)
 CPE = $(PSX_EXEC:.exe=.cpe)
 SYM = $(PSX_EXEC:.exe=.sym)
@@ -23,7 +24,7 @@ $(CPE): $(PSX_OBJECTS)
 	$(PSX_CC) $(PSX_OBJECTS) $(PSX_LDFLAGS) -o$(CPE),$(SYM),$(MAP)
 	
 %.obj: %.c
-	$(PSX_CC) $< $(PSX_CFLAGS) -o $@
+	$(PSX_CC) -I $(HEADERS) $< $(PSX_CFLAGS) -o $@
 
 clean:
 	rm -f $(EXEC) $(PSX_EXEC) $(CPE) $(SYM) $(MAP) $(OBJECTS) $(PSX_OBJECTS) $(SYM) $(MAP) $(OBJECTS) $(PSX_OBJECTS)

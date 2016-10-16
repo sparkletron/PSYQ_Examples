@@ -48,17 +48,17 @@ void createGameObjects(struct s_environment *p_env)
   
   for(index = 0; index < p_env->otSize; index++)
   {
-    p_env->p_primParam[index].px = 0;
-    p_env->p_primParam[index].py = 0;
-    p_env->p_primParam[index].tx = 0;
-    p_env->p_primParam[index].ty = 0;
-    p_env->p_primParam[index].pw = 50;
-    p_env->p_primParam[index].ph = 50;
-    p_env->p_primParam[index].tw = 50;
-    p_env->p_primParam[index].th = 50;
-    p_env->p_primParam[index].r0 = 127;
-    p_env->p_primParam[index].g0 = 127;
-    p_env->p_primParam[index].b0 = 127;
+    p_env->p_primParam[index].vertex0.x = 0;
+    p_env->p_primParam[index].vertex0.y = 0;
+    p_env->p_primParam[index].textureVertex0.x = 0;
+    p_env->p_primParam[index].textureVertex0.y = 0;
+    p_env->p_primParam[index].primSize.w = 50;
+    p_env->p_primParam[index].primSize.h = 50;
+    p_env->p_primParam[index].textureSize.w = 50;
+    p_env->p_primParam[index].textureSize.h = 50;
+    p_env->p_primParam[index].color0.r = 127;
+    p_env->p_primParam[index].color0.g = 127;
+    p_env->p_primParam[index].color0.b = 127;
     p_env->p_primParam[index].type = TYPE_FT4;
     
     for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)

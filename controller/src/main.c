@@ -42,13 +42,13 @@ void createGameObjects(struct s_environment *p_env)
   
   for(index = 0; index < p_env->otSize; index++)
   {
-    p_env->p_primParam[index].px = 0;
-    p_env->p_primParam[index].py = 0;
-    p_env->p_primParam[index].pw = 50;
-    p_env->p_primParam[index].ph = 50;
-    p_env->p_primParam[index].r0 = rand() % 256;
-    p_env->p_primParam[index].g0 = rand() % 256;
-    p_env->p_primParam[index].b0 = rand() % 256;
+    p_env->p_primParam[index].vertex0.x = 0;
+    p_env->p_primParam[index].vertex0.y = 0;
+    p_env->p_primParam[index].primSize.w = 50;
+    p_env->p_primParam[index].primSize.h = 50;
+    p_env->p_primParam[index].color0.r = rand() % 256;
+    p_env->p_primParam[index].color0.g = rand() % 256;
+    p_env->p_primParam[index].color0.b = rand() % 256;
     p_env->p_primParam[index].type = TYPE_F4;
     
     for(buffIndex = 0; buffIndex < DOUBLE_BUF; buffIndex++)

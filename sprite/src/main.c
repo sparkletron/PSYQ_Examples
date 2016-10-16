@@ -48,17 +48,17 @@ void createGameObjects(struct s_environment *p_env)
 {
   int buffIndex;
   
-  p_env->p_primParam[0].px = 0;
-  p_env->p_primParam[0].py = 0;
-  p_env->p_primParam[0].tx = 0;
-  p_env->p_primParam[0].ty = 0;
-  p_env->p_primParam[0].pw = 320;
-  p_env->p_primParam[0].ph = 240;
-  p_env->p_primParam[0].tw = 160;
-  p_env->p_primParam[0].th = 120;
-  p_env->p_primParam[0].r0 = 127;
-  p_env->p_primParam[0].g0 = 127;
-  p_env->p_primParam[0].b0 = 127;
+  p_env->p_primParam[0].vertex0.x = 0;
+  p_env->p_primParam[0].vertex0.y = 0;
+  p_env->p_primParam[0].textureVertex0.x = 0;
+  p_env->p_primParam[0].textureVertex0.y = 0;
+  p_env->p_primParam[0].primSize.w = 320;
+  p_env->p_primParam[0].primSize.h = 240;
+  p_env->p_primParam[0].textureSize.w = 160;
+  p_env->p_primParam[0].textureSize.h = 120;
+  p_env->p_primParam[0].color0.r = 127;
+  p_env->p_primParam[0].color0.g = 127;
+  p_env->p_primParam[0].color0.b = 127;
   p_env->p_primParam[0].type = TYPE_FT4;
   
   for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
@@ -66,15 +66,15 @@ void createGameObjects(struct s_environment *p_env)
     p_env->buffer[buffIndex].p_primitive[0].data = calloc(1, sizeof(POLY_FT4));
   }
   
-  p_env->p_primParam[1].px = SCREEN_WIDTH / 2 - 32;
-  p_env->p_primParam[1].py = SCREEN_HEIGHT / 2 - 32;;
-  p_env->p_primParam[1].tx = 0;
-  p_env->p_primParam[1].ty = 0;
-  p_env->p_primParam[1].pw = 64;
-  p_env->p_primParam[1].ph = 64;
-  p_env->p_primParam[1].r0 = 127;
-  p_env->p_primParam[1].g0 = 127;
-  p_env->p_primParam[1].b0 = 127;
+  p_env->p_primParam[1].vertex0.x = SCREEN_WIDTH / 2 - 32;
+  p_env->p_primParam[1].vertex0.y = SCREEN_HEIGHT / 2 - 32;;
+  p_env->p_primParam[1].textureVertex0.x = 0;
+  p_env->p_primParam[1].textureVertex0.y = 0;
+  p_env->p_primParam[1].primSize.w = 64;
+  p_env->p_primParam[1].primSize.h = 64;
+  p_env->p_primParam[1].color0.r = 127;
+  p_env->p_primParam[1].color0.g = 127;
+  p_env->p_primParam[1].color0.b = 127;
   p_env->p_primParam[1].type = TYPE_SPRITE;
   
   for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
@@ -89,11 +89,11 @@ int animate(struct s_environment *p_env)
   {
     p_env->prevTime = VSync(-1);
     
-    p_env->p_primParam[1].tx = (p_env->p_primParam[1].tx + 64) % 256;
+    p_env->p_primParam[1].textureVertex0.x = (p_env->p_primParam[1].textureVertex0.x + 64) % 256;
     
-    if(p_env->p_primParam[1].tx == 0)
+    if(p_env->p_primParam[1].textureVertex0.x == 0)
     {
-      p_env->p_primParam[1].ty = (p_env->p_primParam[1].ty + 64) % 256;
+      p_env->p_primParam[1].textureVertex0.y = (p_env->p_primParam[1].textureVertex0.y + 64) % 256;
     }
   }
   updatePrim(p_env);
