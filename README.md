@@ -17,6 +17,7 @@ Toolkit is PSYQ, available at [psxdev.net](http://www.psxdev.net/downloads.html)
 * psxGraphics.md   = Graphics Info
 * psxMemCard.md    = Memory Card Usage
 * psxTextures.md   = Texture Loading
+* psxBuildTips.md  = Build Tips
 
 #### Requirements
 
