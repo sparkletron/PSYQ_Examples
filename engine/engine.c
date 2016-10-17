@@ -132,7 +132,7 @@ void setupSound(struct s_environment *p_env)
 
 void playCDtracks(int *p_tracks)
 {
-  if(DsPlay(2, p_tracks, 1) < 0)
+  if(DsPlay(2, p_tracks, 0) < 0)
   {
     printf("\nNo CD Track Playing\n");
   }

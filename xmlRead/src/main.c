@@ -16,7 +16,7 @@ void createGameObjects(struct s_environment *p_env);
 int main() 
 {
   int index = 0;
-  int tracks[] = {1, 2, 0};
+  int tracks[] = {1, 0};
   char *p_title = "XML READ EXAMPLE\nLoaded From CD\nWith Audio\n";
   u_long *p_address[2];
   char *p_xmlFile = NULL;
