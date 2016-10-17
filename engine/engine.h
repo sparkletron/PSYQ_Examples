@@ -17,19 +17,13 @@
  * Version: 1.0
  * 
 */
+#include "PSXINT.h"
 
 #include <stdlib.h>
 #include <libgte.h>
 #include <libgpu.h>
-#include <libpad.h>
-#include <libetc.h>
-#include <libgs.h>
-#include <libmcrd.h>
-#include <libapi.h>
-#include <libds.h>
 #include <libspu.h>
-#include <sys/file.h>
-#include "PSXINT.h"
+
 
 #define SCREEN_WIDTH  320 // screen width
 #define	SCREEN_HEIGHT 240 // screen height
@@ -46,7 +40,7 @@ struct s_gamePad
   {
     struct
     {
-      u_char status:8;
+      uint8_t status:8;
     } byte;
     
   } first;
@@ -55,10 +49,10 @@ struct s_gamePad
   {
     struct
     {
-      u_char recvSize:4;
-      u_char type:4;
+      uint8_t recvSize:4;
+      uint8_t type:4;
     } nibble;
-    u_char byte;
+    uint8_t byte;
     
   } second;
   
@@ -66,16 +60,16 @@ struct s_gamePad
   {
     struct
     {
-      u_char select:1;
-      u_char na2:1;
-      u_char na1:1;
-      u_char start:1;
-      u_char up:1;
-      u_char right:1;
-      u_char down:1;
-      u_char left:1;
+      uint8_t select:1;
+      uint8_t na2:1;
+      uint8_t na1:1;
+      uint8_t start:1;
+      uint8_t up:1;
+      uint8_t right:1;
+      uint8_t down:1;
+      uint8_t left:1;
     } bit;
-    u_char byte;
+    uint8_t byte;
 	  
   } third;
   
@@ -83,16 +77,16 @@ struct s_gamePad
   {
     struct
     {
-      u_char l2:1;
-      u_char r2:1;
-      u_char l1:1;
-      u_char r1:1;
-      u_char triangle:1;
-      u_char circle:1;
-      u_char ex:1;
-      u_char square:1;
+      uint8_t l2:1;
+      uint8_t r2:1;
+      uint8_t l1:1;
+      uint8_t r1:1;
+      uint8_t triangle:1;
+      uint8_t circle:1;
+      uint8_t ex:1;
+      uint8_t square:1;
     } bit;
-    u_char byte;
+    uint8_t byte;
 	  
   } fourth;
 };

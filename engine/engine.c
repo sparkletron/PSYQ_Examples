@@ -18,8 +18,17 @@
  * 
 */
 
-#include <yxml.h>
+
 #include "engine.h"
+
+#include <libds.h>
+#include <libpad.h>
+#include <libetc.h>
+#include <libgs.h>
+#include <libmcrd.h>
+#include <libapi.h>
+#include <sys/file.h>
+#include <yxml.h>
 
 u_long __ramsize = 0x00200000;  //force 2 megabytes of RAM
 u_long __stacksize = 0x00004000; //force 16 kilobytes of stack
