@@ -27,7 +27,7 @@ int main()
   
   createGameObjects(&environment);
   
-  p_address[0] = loadTIMfromCD("\\TIM\\YAKKO.TIM;1");
+  p_address[0] = (u_long *)loadFileFromCD("\\TIM\\YAKKO.TIM;1");
   p_address[1] = p_address[0];
   
   populateTPage(&environment, p_address, environment.otSize);

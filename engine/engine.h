@@ -27,7 +27,9 @@
 #include <libmcrd.h>
 #include <libapi.h>
 #include <libds.h>
+#include <libspu.h>
 #include <sys/file.h>
+#include "PSXINT.h"
 
 #define SCREEN_WIDTH  320 // screen width
 #define	SCREEN_HEIGHT 240 // screen height
@@ -35,22 +37,6 @@
 
 extern u_long __ramsize;  //  = 0x00200000;  force 2 megabytes of RAM
 extern u_long __stacksize; // = 0x00004000; force 16 kilobytes of stack
-
-typedef char int8_t;
-
-typedef short int16_t;
-
-typedef int int32_t;
-
-typedef long long int64_t;
-
-typedef unsigned char uint8_t;
-
-typedef unsigned short uint16_t;
-
-typedef unsigned int uint32_t;
-
-typedef unsigned long long uint64_t;
 
 enum en_primType {TYPE_F4, TYPE_FT4, TYPE_G4, TYPE_GT4, TYPE_SPRITE, TYPE_TILE};
 
@@ -111,6 +97,10 @@ struct s_gamePad
   } fourth;
 };
 
+struct s_xmlData
+{
+  char string[256];
+};
 
 struct s_primitive
 {
@@ -200,14 +190,22 @@ struct s_environment
     struct s_gamePad one;
     struct s_gamePad two;
   } gamePad;
+  
+  SpuCommonAttr soundAttr;
 };
 
 //setup environment and set the number of primitives (sets otSize (ordering table size) to this).
 void initEnv(struct s_environment *p_env, int numPrim);
+//setup sound for cd
+void setupSound(struct s_environment *p_env);
+//play cd tracks (loops all tracks)
+void playCDtracks(int *p_tracks);
+//use yxml to parse data
+struct s_xmlData *getXMLdata(char *p_data, int *op_rowCount);
 //update display
 void display(struct s_environment *p_env);
 //load a tim from CD, return address to load tim from in memory.
-u_long *loadTIMfromCD(char *p_path);
+void *loadFileFromCD(char *p_path);
 //get tim info
 struct s_textureInfo getTIMinfo(u_long *p_address); 
 //load tim info from memory address and set it as a texture page (must be called after populateOT.
