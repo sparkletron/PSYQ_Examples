@@ -38,6 +38,12 @@
 
 #### Notes
 * When loading offset the pointer by 32 bits (4 bytes) this information is not used by the GsGetTimInfo() function.
+* 16 Bit BITMAPS and 16 bit TIM files are very similar, the headers are different, but the data is almost identical.
+  * TIM Image data is A1B5G5R5
+  * BMP Image data is X1R5G5B5
+  * Red and blue are swapped.
+  * Only other edition needed is an X, Y for placement in the VRAM.
+  * No clut needed for 16 bit image data.
 
 #### Creating a texture
 
