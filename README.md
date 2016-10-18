@@ -10,8 +10,9 @@ Toolkit is PSYQ, available at [psxdev.net](http://www.psxdev.net/downloads.html)
 
 ### Files
 
+* psxCDaudio.md    = Play Audio Track (CDDA)
 * psxCDcreate.md   = Create a ISO image
-* psxCDread.md     = Read Data from a cd (or play audio)
+* psxCDread.md     = Read Data from a cd
 * psxController.md = Access Controller
 * psxGeometry.md   = Depth sorting, Polygons
 * psxGraphics.md   = Graphics Info
