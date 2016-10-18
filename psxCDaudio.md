@@ -45,7 +45,7 @@ void setupSound(struct s_environment *p_env)
   
   SpuSetTransferMode(SPU_TRANSFER_BY_DMA);
 }
-
+```
 
 ##### Play CD Tracks
 ```
