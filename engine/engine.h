@@ -17,7 +17,7 @@
  * Version: 1.0
  * 
 */
-#include "PSXINT.h"
+#include <stdint.h>
 
 #include <stdlib.h>
 #include <libgte.h>
