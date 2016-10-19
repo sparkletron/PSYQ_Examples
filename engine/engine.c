@@ -164,6 +164,7 @@ struct s_xmlData *getXMLdata(char *p_data, int *op_rowCount)
       case YXML_ELEMSTART:
 	strcpy(p_xmlData[*op_rowCount].string, yxml.elem);
 	printf("\nELEM: %s\n", p_xmlData[*op_rowCount].string);
+	index = 0;
 	(*op_rowCount)++;
 	break;
       case YXML_ATTRSTART:
