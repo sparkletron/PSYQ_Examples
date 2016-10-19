@@ -1,0 +1,3 @@
+[submodule "YXML_PSYQ_PORT"]
+	path = YXML_PSYQ_PORT
+	url = git@github.com:electroCupcake/YXML_PSYQ_PORT.git
