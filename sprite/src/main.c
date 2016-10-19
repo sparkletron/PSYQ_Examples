@@ -15,7 +15,7 @@ extern unsigned char e_image[];
 extern unsigned char e_sand[];
 
 void createGameObjects(struct s_environment *p_env);
-int animate(struct s_environment *p_env);
+void animate(struct s_environment *p_env);
 
 int main() 
 {
@@ -84,7 +84,7 @@ void createGameObjects(struct s_environment *p_env)
   }
 }
 
-int animate(struct s_environment *p_env)
+void animate(struct s_environment *p_env)
 {
   static int prevTime = 0;
   
