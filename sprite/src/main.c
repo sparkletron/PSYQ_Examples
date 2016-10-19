@@ -39,6 +39,7 @@ int main()
   {
     display(&environment);
     animate(&environment);
+    movPrim(&environment);
   }
 
   return 0;
@@ -85,9 +86,11 @@ void createGameObjects(struct s_environment *p_env)
 
 int animate(struct s_environment *p_env)
 {
-  if(p_env->prevTime == 0 || ((VSync(-1) - p_env->prevTime) >= 2))
+  static int prevTime = 0;
+  
+  if(prevTime == 0 || ((VSync(-1) - prevTime) >= 2))
   {
-    p_env->prevTime = VSync(-1);
+    prevTime = VSync(-1);
     
     p_env->p_primParam[1].textureVertex0.x = (p_env->p_primParam[1].textureVertex0.x + 64) % 256;
     
@@ -96,5 +99,4 @@ int animate(struct s_environment *p_env)
       p_env->p_primParam[1].textureVertex0.y = (p_env->p_primParam[1].textureVertex0.y + 64) % 256;
     }
   }
-  updatePrim(p_env);
 }

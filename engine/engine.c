@@ -410,6 +410,7 @@ void updatePrim(struct s_environment *p_env)
   {
     switch(p_env->p_currBuffer->p_primitive[index].type)
     {
+      
       case TYPE_SPRITE:
 	setXY0((SPRT *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y);
 	setWH((SPRT *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].primSize.w,  p_env->p_primParam[index].primSize.h);
