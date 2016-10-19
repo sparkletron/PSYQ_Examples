@@ -88,7 +88,12 @@ void animate(struct s_environment *p_env)
 {
   static int prevTime = 0;
   
-  if(prevTime == 0 || ((VSync(-1) - prevTime) >= 2))
+  if(p_env->gamePad.one.fourth.bit.triangle == 0)
+  {
+    prevTime--;
+  }
+  
+  if(prevTime == 0 || ((VSync(-1) - prevTime) >= 4))
   {
     prevTime = VSync(-1);
     
