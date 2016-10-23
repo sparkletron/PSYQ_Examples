@@ -8,7 +8,6 @@
 */
 
 #include <engine.h>
-#include <getprim.h>
 
 void createGameObjects(struct s_environment *p_env);
 
@@ -36,38 +35,12 @@ int main()
   return 0;
 }
 
-//utility
-struct s_primParam *getObjects(char *fileName)
-{
-  char *p_buff = NULL;
-  struct s_primParam *p_primParam;
-  
-  p_buff = (char *)loadFileFromCD(fileName);
-  
-  if(p_buff == NULL)
-  {
-    return NULL;
-  }
-  
-  setXMLdata(p_buff);
-  
-  p_primParam = getPrimData();
-  
-  resetGetPrimData();
-  
-  free(p_buff);
-  
-  return p_primParam;
-}
-
 void createGameObjects(struct s_environment *p_env)
 {
   int index;
   int buffIndex;
 
   struct s_primParam *p_primParam[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
-  
-  initGetPrimData();
   
   p_primParam[0] = getObjects("\\SQ1.XML;1");
   p_primParam[1] = getObjects("\\SQ2.XML;1");
@@ -78,13 +51,17 @@ void createGameObjects(struct s_environment *p_env)
   
   for(index = 0; index < p_env->otSize; index++)
   {
+    if(p_primParam[index] == NULL)
+    {
+      continue;
+    }
     memcpy(&(p_env->p_primParam[index]), p_primParam[index], sizeof(struct s_primParam));
     
     p_env->p_primParam[index].color0.r = rand() % 256;
     p_env->p_primParam[index].color0.g = rand() % 256;
     p_env->p_primParam[index].color0.b = rand() % 256;
     
-    freePrimData(&p_primParam[index]);
+    freeObjects(&p_primParam[index]);
     
     for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
     {

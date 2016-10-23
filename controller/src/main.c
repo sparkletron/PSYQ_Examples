@@ -8,7 +8,6 @@
 */
 
 #include <engine.h>
-#include <getprim.h>
 
 void createGameObjects(struct s_environment *p_env);
 
@@ -40,25 +39,15 @@ void createGameObjects(struct s_environment *p_env)
 {
   int index;
   int buffIndex;
-  char *p_buff = NULL;
+
   struct s_primParam *p_primParam = NULL;
   
-  p_buff = (char *)loadFileFromCD("\\TEST.XML;1");
-  
-  if(p_buff == NULL)
+  p_primParam = getObjects("\\TEST.XML;1");
+ 
+  if(p_primParam == NULL)
   {
-    printf("\nDATA READ FAILD\n");
     return;
   }
-  
-  initGetPrimData();
-  
-  setXMLdata(p_buff);
-  
-  p_primParam = getPrimData();
-  
-  printf("DATA: %d %d %d %d %d %d %d\n", p_primParam->vertex0.x, p_primParam->vertex0.y, p_primParam->color0.r, p_primParam->color0.g, p_primParam->color0.b,
-	 p_primParam->dimensions.w, p_primParam->dimensions.h);
   
   for(index = 0; index < p_env->otSize; index++)
   {
@@ -75,5 +64,5 @@ void createGameObjects(struct s_environment *p_env)
     }
   }
   
-  freePrimData(&p_primParam);
+  freeObjects(&p_primParam);
 }

@@ -1,5 +1,5 @@
 SOURCES = main.c
-HEADERS = ../../engine -I ../../libgetprim
+HEADERS = ../../engine
 PSX_EXEC = otMovSqr.exe
 PSX_CC = CCPSX.EXE
 PSX_CPE2X = CPE2XWIN.EXE

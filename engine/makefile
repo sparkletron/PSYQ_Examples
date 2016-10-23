@@ -2,7 +2,7 @@ SOURCES = engine.c
 LIBRARY = libeng.lib
 PSX_CC = CCPSX.EXE
 PSX_AR = PSYLIB.EXE
-PSX_CFLAGS = -O3 -I ../YXML_PSYQ_PORT -c
+PSX_CFLAGS = -O3 -I ../libgetprim -I ./ -c
 PSX_OBJECTS = $(SOURCES:.c=.obj)
 PSX_LIBRARY_CREATE = echo 'D:\r cd "$(CURDIR:/%=%)/"\r $(PSX_AR) /u $(LIBRARY) $(PSX_OBJECTS)\r exitemu\r' | dosemu -dumb
 

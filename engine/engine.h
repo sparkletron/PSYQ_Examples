@@ -37,6 +37,10 @@ void playCDtracks(int *p_tracks);
 void display(struct s_environment *p_env);
 //load a tim from CD, return address to load tim from in memory.
 void *loadFileFromCD(char *p_path);
+//get objects from xml files
+struct s_primParam *getObjects(char *fileName);
+//cleanup primitives
+void freeObjects(struct s_primParam **p_primParam);
 //call to populate the ordering table with primitives.
 void populateOT(struct s_environment *p_env);
 //call to update the position of primitives if it has been altered

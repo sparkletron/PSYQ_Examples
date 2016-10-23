@@ -28,7 +28,7 @@
 #include <libmcrd.h>
 #include <libapi.h>
 #include <sys/file.h>
-#include <yxml.h>
+#include <getprim.h>
 
 u_long __ramsize = 0x00200000;  //force 2 megabytes of RAM
 u_long __stacksize = 0x00004000; //force 16 kilobytes of stack
@@ -114,6 +114,8 @@ void initEnv(struct s_environment *p_env, int numPrim)
   
   PadInitDirect((u_char *)&p_env->gamePad.one, (u_char *)&p_env->gamePad.two);
   PadStartCom();
+  
+  initGetPrimData();
   
   SetDispMask(1); 
 }
@@ -216,6 +218,34 @@ void *loadFileFromCD(char *p_path)
   printf("\nREAD COMPLETE\n");
   
   return file;
+}
+
+struct s_primParam *getObjects(char *fileName)
+{
+  char *p_buff = NULL;
+  struct s_primParam *p_primParam;
+  
+  p_buff = (char *)loadFileFromCD(fileName);
+  
+  if(p_buff == NULL)
+  {
+    return NULL;
+  }
+  
+  setXMLdata(p_buff);
+  
+  p_primParam = getPrimData();
+  
+  resetGetPrimData();
+  
+  free(p_buff);
+  
+  return p_primParam;
+}
+
+void freeObjects(struct s_primParam **p_primParam)
+{
+  freePrimData(p_primParam);
 }
 
 void populateOT(struct s_environment *p_env)
