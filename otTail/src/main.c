@@ -6,7 +6,7 @@
  * Move tail with D-Pad, press start or select to keep the tail from moving back to home.
 */
 
-#include "engine.h"
+#include <engine.h>
 
 void movSqrTail(struct s_environment *p_env);
 void createGameObjects(struct s_environment *p_env);
@@ -51,7 +51,7 @@ void movUp(struct s_environment *p_env, int len)
 void movDown(struct s_environment *p_env, int len)
 {
   int index;
-  if((p_env->p_primParam[0].vertex0.y + p_env->p_primParam[0].primSize.h) < SCREEN_HEIGHT)
+  if((p_env->p_primParam[0].vertex0.y + p_env->p_primParam[0].dimensions.h) < SCREEN_HEIGHT)
   {
     for(index = len - 2; index >= 0; index--)
     {
@@ -75,7 +75,7 @@ void movLeft(struct s_environment *p_env, int len)
 void movRight(struct s_environment *p_env, int len)
 {
   int index;
-  if((p_env->p_primParam[0].vertex0.x + p_env->p_primParam[0].primSize.w) < SCREEN_WIDTH)
+  if((p_env->p_primParam[0].vertex0.x + p_env->p_primParam[0].dimensions.w) < SCREEN_WIDTH)
   {
     for(index = len - 2; index >= 0; index--)
     {
@@ -142,13 +142,20 @@ void createGameObjects(struct s_environment *p_env)
 {
   int index;
   int buffIndex;
+
+  struct s_primParam *p_primParam[10] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
   
   for(index = 0; index < p_env->otSize; index++)
   {
-    p_env->p_primParam[index].vertex0.x = SCREEN_WIDTH / 2 - 25;
-    p_env->p_primParam[index].vertex0.y = SCREEN_HEIGHT / 2 - 25;
-    p_env->p_primParam[index].primSize.w = 50;
-    p_env->p_primParam[index].primSize.h = 50;
+    p_primParam[index] = getObjects("\\SQ1.XML;1");
+    
+    if(p_primParam[index] == NULL)
+    {
+      continue;
+    }
+    
+    memcpy(&(p_env->p_primParam[index]), p_primParam[index], sizeof(struct s_primParam));
+    
     p_env->p_primParam[index].color0.r = rand() % 256;
     p_env->p_primParam[index].color0.g = rand() % 256;
     p_env->p_primParam[index].color0.b = rand() % 256;
@@ -161,7 +168,8 @@ void createGameObjects(struct s_environment *p_env)
     p_env->p_primParam[index].color3.r = rand() % 256;
     p_env->p_primParam[index].color3.g = rand() % 256;
     p_env->p_primParam[index].color3.b = rand() % 256;
-    p_env->p_primParam[index].type = TYPE_G4;
+    
+    freeObjects(&p_primParam[index]);
     
     for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
     {
