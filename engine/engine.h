@@ -23,7 +23,6 @@
 
 #define SCREEN_WIDTH  320 // screen width
 #define	SCREEN_HEIGHT 240 // screen height
-#define DOUBLE_BUF    2
 
 extern u_long __ramsize;  //  = 0x00200000;  force 2 megabytes of RAM
 extern u_long __stacksize; // = 0x00004000; force 16 kilobytes of stack
@@ -34,16 +33,10 @@ void initEnv(struct s_environment *p_env, int numPrim);
 void setupSound(struct s_environment *p_env);
 //play cd tracks (loops all tracks)
 void playCDtracks(int *p_tracks);
-//use yxml to parse data
-struct s_xmlData *getXMLdata(char *p_data, int *op_rowCount);
 //update display
 void display(struct s_environment *p_env);
 //load a tim from CD, return address to load tim from in memory.
 void *loadFileFromCD(char *p_path);
-//get tim info
-struct s_textureInfo getTIMinfo(u_long *p_address); 
-//load tim info from memory address and set it as a texture page (must be called after populateOT.
-void populateTPage(struct s_environment *p_env, u_long *p_address[], int len);
 //call to populate the ordering table with primitives.
 void populateOT(struct s_environment *p_env);
 //call to update the position of primitives if it has been altered

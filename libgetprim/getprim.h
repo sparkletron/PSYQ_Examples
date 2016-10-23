@@ -19,7 +19,7 @@
 #ifndef GETPRIM_H
 #define GETPRIM_H
 
-#include "ENGTYP.h"
+#include <ENGTYP.h>
 
 //call to initilize yxml and setup get prim data
 void initGetPrimData();

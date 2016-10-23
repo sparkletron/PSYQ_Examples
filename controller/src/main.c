@@ -7,7 +7,8 @@
  * 
 */
 
-#include "engine.h"
+#include <engine.h>
+#include <getprim.h>
 
 void createGameObjects(struct s_environment *p_env);
 
@@ -39,21 +40,40 @@ void createGameObjects(struct s_environment *p_env)
 {
   int index;
   int buffIndex;
+  char *p_buff = NULL;
+  struct s_primParam *p_primParam = NULL;
+  
+  p_buff = (char *)loadFileFromCD("\\TEST.XML;1");
+  
+  if(p_buff == NULL)
+  {
+    printf("\nDATA READ FAILD\n");
+    return;
+  }
+  
+  initGetPrimData();
+  
+  setXMLdata(p_buff);
+  
+  p_primParam = getPrimData();
+  
+  printf("DATA: %d %d %d %d %d %d %d\n", p_primParam->vertex0.x, p_primParam->vertex0.y, p_primParam->color0.r, p_primParam->color0.g, p_primParam->color0.b,
+	 p_primParam->dimensions.w, p_primParam->dimensions.h);
   
   for(index = 0; index < p_env->otSize; index++)
   {
-    p_env->p_primParam[index].vertex0.x = 0;
-    p_env->p_primParam[index].vertex0.y = 0;
-    p_env->p_primParam[index].primSize.w = 50;
-    p_env->p_primParam[index].primSize.h = 50;
-    p_env->p_primParam[index].color0.r = rand() % 256;
-    p_env->p_primParam[index].color0.g = rand() % 256;
-    p_env->p_primParam[index].color0.b = rand() % 256;
-    p_env->p_primParam[index].type = TYPE_F4;
+    memcpy(&(p_env->p_primParam[index]), p_primParam, sizeof(struct s_primParam)); 
+
+//     p_env->p_primParam[index].color0.r = rand() % 256;
+//     p_env->p_primParam[index].color0.g = rand() % 256;
+//     p_env->p_primParam[index].color0.b = rand() % 256;
+
     
     for(buffIndex = 0; buffIndex < DOUBLE_BUF; buffIndex++)
     {
       p_env->buffer[buffIndex].p_primitive[index].data = calloc(1, sizeof(POLY_F4));
     }
   }
+  
+  freePrimData(&p_primParam);
 }

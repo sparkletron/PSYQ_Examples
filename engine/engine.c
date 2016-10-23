@@ -45,20 +45,27 @@ void swapBuffers(struct s_environment *p_env)
 void initEnv(struct s_environment *p_env, int numPrim)
 {
   int index;
+  int bufIndex;
   
   p_env->bufSize = DOUBLE_BUF;
   p_env->otSize = (numPrim < 1 ? 1 : numPrim);
   p_env->primSize = p_env->otSize;
   p_env->primCur = 0;
   p_env->prevTime = 0;
+  p_env->p_primParam = NULL;
   
-  for(index = 0; index < p_env->bufSize; index++)
+  for(bufIndex = 0; bufIndex < p_env->bufSize; bufIndex++)
   {
-    p_env->buffer[index].p_primitive = calloc(p_env->otSize, sizeof(struct s_primitive));
-    p_env->buffer[index].p_ot = calloc(p_env->otSize, sizeof(unsigned long));
+    p_env->buffer[bufIndex].p_primitive = calloc(p_env->otSize, sizeof(struct s_primitive));
+    p_env->buffer[bufIndex].p_ot = calloc(p_env->otSize, sizeof(unsigned long));
   }
   
   p_env->p_primParam = calloc(p_env->otSize, sizeof(struct s_primParam));
+  
+  for(index = 0; index < p_env->primSize; index++)
+  {
+    p_env->p_primParam->p_texture = NULL;
+  }
   
   // within the BIOS, if the address 0xBFC7FF52 equals 'E', set it as PAL (1). Otherwise, set it as NTSC (0)
   switch(*(char *)0xbfc7ff52=='E')
@@ -73,26 +80,26 @@ void initEnv(struct s_environment *p_env, int numPrim)
   
   ResetGraph(0);
 
-  for(index = 0; index < p_env->bufSize; index += 2) 
+  for(bufIndex = 0; bufIndex < p_env->bufSize; bufIndex += 2) 
   {
-    SetDefDispEnv(&p_env->buffer[index].disp, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    SetDefDrawEnv(&p_env->buffer[index].draw, 0, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
+    SetDefDispEnv(&p_env->buffer[bufIndex].disp, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    SetDefDrawEnv(&p_env->buffer[bufIndex].draw, 0, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
   }
 
-  for(index = 1; index < p_env->bufSize; index += 2)
+  for(bufIndex = 1; bufIndex < p_env->bufSize; bufIndex += 2)
   {
-    SetDefDispEnv(&p_env->buffer[index].disp, 0, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
-    SetDefDrawEnv(&p_env->buffer[index].draw, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    SetDefDispEnv(&p_env->buffer[bufIndex].disp, 0, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
+    SetDefDrawEnv(&p_env->buffer[bufIndex].draw, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
   }
 
-  for(index = 0; index < p_env->bufSize; index++)
+  for(bufIndex = 0; bufIndex < p_env->bufSize; bufIndex++)
   {
-    p_env->buffer[index].draw.isbg = 1;
-    p_env->buffer[index].draw.r0 = 0;
-    p_env->buffer[index].draw.g0 = 0;
-    p_env->buffer[index].draw.b0 = 0;
+    p_env->buffer[bufIndex].draw.isbg = 1;
+    p_env->buffer[bufIndex].draw.r0 = 0;
+    p_env->buffer[bufIndex].draw.g0 = 0;
+    p_env->buffer[bufIndex].draw.b0 = 0;
     
-    ClearOTag(p_env->buffer[index].p_ot, p_env->otSize);
+    ClearOTag(p_env->buffer[bufIndex].p_ot, p_env->otSize);
   }
   
   p_env->p_currBuffer = p_env->buffer;
@@ -140,86 +147,12 @@ void playCDtracks(int *p_tracks)
   printf("\nCurrent Track: %d\n", DsPlay(3, p_tracks, 1));
 }
 
-struct s_xmlData *getXMLdata(char *p_data, int *op_rowCount)
-{
-  int index = 0;
-  char stack[BUFSIZE];
-  char attrValue[256];
-  char string[256];
-  
-  struct s_xmlData *p_xmlData = NULL;
-  
-  yxml_t yxml;
-  yxml_ret_t returnValue;
-  
-  p_xmlData = calloc(256, sizeof(struct s_xmlData));
-  
-  yxml_init(&yxml, stack, BUFSIZE);
-  
-  do {
-    returnValue = yxml_parse(&yxml, *p_data);
-    
-    switch(returnValue)
-    {
-      case YXML_ELEMSTART:
-	strcpy(p_xmlData[*op_rowCount].string, yxml.elem);
-	printf("\nELEM: %s\n", p_xmlData[*op_rowCount].string);
-	index = 0;
-	(*op_rowCount)++;
-	break;
-      case YXML_ATTRSTART:
-	strcpy(p_xmlData[*op_rowCount].string, yxml.attr);
-	printf("\nATTR: %s\n", p_xmlData[*op_rowCount].string);
-	(*op_rowCount)++;
-	break;
-      case YXML_ATTRVAL:
-	if(yxml.data[0] != '\n')
-	{
-	  attrValue[index] = yxml.data[0];
-	  index++;
-	  index = index % 256;
-	}
-	break;
-      case YXML_CONTENT:
-	if(yxml.data[0] != '\n')
-	{
-	  string[index] = yxml.data[0];
-	  index++;
-	  index = index % 256;
-	}
-	break;
-      case YXML_ATTREND:
-	strcpy(p_xmlData[*op_rowCount].string, attrValue);
-	(*op_rowCount)++;
-	index = 0;
-	memset(string, 0, 256);
-	break;
-      case YXML_ELEMEND:
-	if(*(p_data + 1) != 0)
-	{
-	  strcpy(p_xmlData[*op_rowCount].string, string);
-	  (*op_rowCount)++;
-	  index = 0;
-	  memset(string, 0, 256);
-	}
-      default:
-	break;
-    }
-    
-    p_data++;
-  } while(*p_data && returnValue >= 0);
-
-  printf("\nDONE WITH XML\n");
-  
-  return p_xmlData;
-}
-
 void display(struct s_environment *p_env)
 {
   //avoid issues with delayed execution
   while(DrawSync(1));
   VSync(0);
-  
+  //font flush now so contents get drawn
   FntFlush(-1);
   
   PutDrawEnv(&p_env->p_currBuffer->draw);
@@ -230,6 +163,7 @@ void display(struct s_environment *p_env)
   //exchange reg and draw buffer, so newly registered ot will be drawn, and used draw buffer can now be used for registration.
   swapBuffers(p_env);
   
+  //write header before all other font prints
   FntPrint("%s\n%s\n%X", p_env->envMessage.p_title, p_env->envMessage.p_message, *p_env->envMessage.p_data);
 }
 
@@ -284,60 +218,6 @@ void *loadFileFromCD(char *p_path)
   return file;
 }
 
-struct s_textureInfo getTIMinfo(u_long *p_address)
-{
-  struct s_textureInfo textureInfo;
-  GsIMAGE timData;
-  
-  GsGetTimInfo(p_address+1, &timData);
-  
-  textureInfo.textureID = LoadTPage(timData.pixel, timData.pmode, 0, timData.px, timData.py, timData.pw, timData.ph);
-  textureInfo.clutID = LoadClut(timData.clut, timData.cx, timData.cy);
-  
-  return textureInfo;
-}
-
-void populateTPage(struct s_environment *p_env, u_long *p_address[], int len)
-{
-  int index;
-  int buffIndex;
-  
-  for(index = 0; (index < len) && (index < p_env->otSize); index++)
-  {
-    if(p_address[index] != NULL)
-    {
-      p_env->p_primParam[index].textureInfo = getTIMinfo(p_address[index]);
-    }
-  }
-  
-  for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
-  {
-    for(index = 0; (index < len) && (index < p_env->otSize); index++)
-    {
-      p_env->buffer[buffIndex].p_primitive[index].type = p_env->p_primParam[index].type;
-      
-      switch(p_env->buffer[buffIndex].p_primitive[index].type)
-      {
-	case TYPE_FT4:
-	  ((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->tpage = p_env->p_primParam[index].textureInfo.textureID;
-	  ((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->clut = p_env->p_primParam[index].textureInfo.clutID;
-	  break;
-	case TYPE_GT4:
-	  ((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->tpage = p_env->p_primParam[index].textureInfo.textureID;
-	  ((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->clut = p_env->p_primParam[index].textureInfo.clutID;
-	  break;
-	case TYPE_SPRITE:
-	  SetDrawTPage(&p_env->p_primParam[index].tpage, 1, 0, p_env->p_primParam[index].textureInfo.textureID);
-	  AddPrim(&(p_env->buffer[buffIndex].p_ot[index]), &p_env->p_primParam[index].tpage);
-	  break;
-	default:
-	  printf("\nNon Texture Type at index %d\n", index);
-	  break;
-      }
-    }
-  }
-}
-
 void populateOT(struct s_environment *p_env)
 {
   int index;
@@ -354,30 +234,30 @@ void populateOT(struct s_environment *p_env)
 	case TYPE_SPRITE:
 	  SetSprt((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data);
 	  setXY0((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y);
-	  setWH((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].primSize.w,  p_env->p_primParam[index].primSize.h);
-	  setUV0((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].textureVertex0.x, p_env->p_primParam[index].textureVertex0.y);
+	  setWH((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].dimensions.w,  p_env->p_primParam[index].dimensions.h);
+	  setUV0((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].p_texture->vertex0.x, p_env->p_primParam[index].p_texture->vertex0.y);
 	  setRGB0((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
 	  break;
 	case TYPE_TILE:
 	  setTile((TILE *)p_env->buffer[buffIndex].p_primitive[index].data);
 	  setXY0((TILE *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y);
-	  setWH((TILE *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].primSize.w,  p_env->p_primParam[index].primSize.h);
+	  setWH((TILE *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].dimensions.w,  p_env->p_primParam[index].dimensions.h);
 	  setRGB0((TILE *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
 	  break;
 	case TYPE_F4:
 	  SetPolyF4((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data);
-	  setXYWH((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].primSize.w, p_env->p_primParam[index].primSize.h);
+	  setXYWH((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].dimensions.w, p_env->p_primParam[index].dimensions.h);
 	  setRGB0((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
 	  break;
 	case TYPE_FT4:
 	  SetPolyFT4((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data);
-	  setUVWH((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].textureVertex0.x, p_env->p_primParam[index].textureVertex0.y, p_env->p_primParam[index].textureSize.w, p_env->p_primParam[index].textureSize.h);
-	  setXYWH((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].primSize.w, p_env->p_primParam[index].primSize.h);
+	  setUVWH((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].p_texture->vertex0.x, p_env->p_primParam[index].p_texture->vertex0.y, p_env->p_primParam[index].p_texture->dimensions.w, p_env->p_primParam[index].p_texture->dimensions.h);
+	  setXYWH((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].dimensions.w, p_env->p_primParam[index].dimensions.h);
 	  setRGB0((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
 	  break;
 	case TYPE_G4:
 	  SetPolyG4((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data);
-	  setXYWH((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].primSize.w, p_env->p_primParam[index].primSize.h);       
+	  setXYWH((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].dimensions.w, p_env->p_primParam[index].dimensions.h);       
 	  setRGB0((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
 	  setRGB1((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color1.r, p_env->p_primParam[index].color1.g, p_env->p_primParam[index].color1.b);
 	  setRGB2((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color2.r, p_env->p_primParam[index].color2.g, p_env->p_primParam[index].color2.b);
@@ -385,8 +265,8 @@ void populateOT(struct s_environment *p_env)
 	  break;
 	case TYPE_GT4:
 	  SetPolyGT4((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data);
-	  setUVWH((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].textureVertex0.x, p_env->p_primParam[index].textureVertex0.y, p_env->p_primParam[index].textureSize.w, p_env->p_primParam[index].textureSize.h);
-	  setXYWH((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].primSize.w, p_env->p_primParam[index].primSize.h);      
+	  setUVWH((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].p_texture->vertex0.x, p_env->p_primParam[index].p_texture->vertex0.y, p_env->p_primParam[index].p_texture->dimensions.w, p_env->p_primParam[index].p_texture->dimensions.h);
+	  setXYWH((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].dimensions.w, p_env->p_primParam[index].dimensions.h);      
 	  setRGB0((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
 	  setRGB1((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color1.r, p_env->p_primParam[index].color1.g, p_env->p_primParam[index].color1.b);
 	  setRGB2((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color2.r, p_env->p_primParam[index].color2.g, p_env->p_primParam[index].color2.b);
@@ -413,34 +293,34 @@ void updatePrim(struct s_environment *p_env)
       
       case TYPE_SPRITE:
 	setXY0((SPRT *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y);
-	setWH((SPRT *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].primSize.w,  p_env->p_primParam[index].primSize.h);
-	setUV0((SPRT *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].textureVertex0.x, p_env->p_primParam[index].textureVertex0.y);
+	setWH((SPRT *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].dimensions.w,  p_env->p_primParam[index].dimensions.h);
+	setUV0((SPRT *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].p_texture->vertex0.x, p_env->p_primParam[index].p_texture->vertex0.y);
 	setRGB0((SPRT *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
 	break;
       case TYPE_TILE:
 	setXY0((TILE *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y);
-	setWH((TILE *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].primSize.w,  p_env->p_primParam[index].primSize.h);
+	setWH((TILE *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].dimensions.w,  p_env->p_primParam[index].dimensions.h);
 	setRGB0((TILE *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
 	break;
       case TYPE_F4:
-	setXYWH((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].primSize.w, p_env->p_primParam[index].primSize.h);
+	setXYWH((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].dimensions.w, p_env->p_primParam[index].dimensions.h);
 	setRGB0((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
 	break;
       case TYPE_FT4:
-	setUVWH((POLY_FT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].textureVertex0.x, p_env->p_primParam[index].textureVertex0.y, p_env->p_primParam[index].textureSize.w, p_env->p_primParam[index].textureSize.h);
-	setXYWH((POLY_FT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].primSize.w, p_env->p_primParam[index].primSize.h);
+	setUVWH((POLY_FT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].p_texture->vertex0.x, p_env->p_primParam[index].p_texture->vertex0.y, p_env->p_primParam[index].p_texture->dimensions.w, p_env->p_primParam[index].p_texture->dimensions.h);
+	setXYWH((POLY_FT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].dimensions.w, p_env->p_primParam[index].dimensions.h);
 	setRGB0((POLY_FT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
 	break;
       case TYPE_G4:
-	setXYWH((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].primSize.w, p_env->p_primParam[index].primSize.h);       
+	setXYWH((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].dimensions.w, p_env->p_primParam[index].dimensions.h);       
 	setRGB0((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
 	setRGB1((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color1.r, p_env->p_primParam[index].color1.g, p_env->p_primParam[index].color1.b);
 	setRGB2((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color2.r, p_env->p_primParam[index].color2.g, p_env->p_primParam[index].color2.b);
 	setRGB3((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color3.r, p_env->p_primParam[index].color3.g, p_env->p_primParam[index].color3.b);
 	break;
       case TYPE_GT4:
-	setUVWH((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].textureVertex0.x, p_env->p_primParam[index].textureVertex0.y, p_env->p_primParam[index].textureSize.w, p_env->p_primParam[index].textureSize.h);
-	setXYWH((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].primSize.w, p_env->p_primParam[index].primSize.h);      
+	setUVWH((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].p_texture->vertex0.x, p_env->p_primParam[index].p_texture->vertex0.y, p_env->p_primParam[index].p_texture->dimensions.w, p_env->p_primParam[index].p_texture->dimensions.h);
+	setXYWH((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].dimensions.w, p_env->p_primParam[index].dimensions.h);      
 	setRGB0((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
 	setRGB1((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color1.r, p_env->p_primParam[index].color1.g, p_env->p_primParam[index].color1.b);
 	setRGB2((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color2.r, p_env->p_primParam[index].color2.g, p_env->p_primParam[index].color2.b);
@@ -485,7 +365,7 @@ void movPrim(struct s_environment *p_env)
   
   if(p_env->gamePad.one.third.bit.right == 0)
   {
-    if((p_env->p_primParam[p_env->primCur].vertex0.x + p_env->p_primParam[p_env->primCur].primSize.w) < SCREEN_WIDTH)
+    if((p_env->p_primParam[p_env->primCur].vertex0.x + p_env->p_primParam[p_env->primCur].dimensions.w) < SCREEN_WIDTH)
     {
       p_env->p_primParam[p_env->primCur].vertex0.x += 1;
     }
@@ -493,7 +373,7 @@ void movPrim(struct s_environment *p_env)
   
   if(p_env->gamePad.one.third.bit.down == 0)
   {
-    if((p_env->p_primParam[p_env->primCur].vertex0.y + p_env->p_primParam[p_env->primCur].primSize.h) < SCREEN_HEIGHT)
+    if((p_env->p_primParam[p_env->primCur].vertex0.y + p_env->p_primParam[p_env->primCur].dimensions.h) < SCREEN_HEIGHT)
     {
       p_env->p_primParam[p_env->primCur].vertex0.y += 1;
     }

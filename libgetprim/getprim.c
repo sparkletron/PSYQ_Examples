@@ -7,7 +7,7 @@
  * 
  * 
  */
-#include "getPrim.h"
+#include "getprim.h"
 #include <string.h>
 #include <stdio.h>
 #include <yxml.h>
@@ -377,10 +377,9 @@ int getXMLcontent()
 {
   int len = 0;
   int index = 0;
+  yxml_ret_t yxmlState;
 
   memset(g_parserData.stringBuffer, 0, 256);
-  
-  yxml_ret_t yxmlState;
   
   do
   {

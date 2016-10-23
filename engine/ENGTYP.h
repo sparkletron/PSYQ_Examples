@@ -11,6 +11,8 @@
 #include <libgpu.h>
 #include <libspu.h>
 
+#define DOUBLE_BUF 2
+
 enum en_primType {TYPE_F4, TYPE_FT4, TYPE_G4, TYPE_GT4, TYPE_SPRITE, TYPE_TILE};
 
 struct s_gamePad
@@ -134,7 +136,7 @@ struct s_primParam
   struct s_color color2;
   struct s_color color3;
   
-  struct s_dimensions size;
+  struct s_dimensions dimensions;
   
   struct s_texture *p_texture;
 };
