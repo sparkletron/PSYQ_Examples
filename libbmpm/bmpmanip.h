@@ -23,14 +23,10 @@ int removeSemiTrans(uint8_t *op_data, int len);
 
 //convert bitmap data to RAW, if no header detected, or incorrect header, this does nothing.
 //returns new size of data, 0 for no change, -1 for non-valid bitmap or realloc issue
-int bitmapToRAW(uint8_t **op_data, int len);
+int bitmapToRAW(uint8_t **op_data, int len, int width, int height);
 
 //convert rgb data to bgr data, works with bitmap or raw data
 //0 or greater success, -1 failure
 int swapRedBlue(uint8_t *op_data, int len);
-
-//swap bytes around, works with bitmap or raw data
-//0 or greater success, -1 failure
-int reverseData(uint8_t *op_data, int len);
 
 #endif

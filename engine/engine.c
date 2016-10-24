@@ -185,7 +185,7 @@ void populateTextures(struct s_environment *p_env)
       {
 	printf("\nGETTING RAW\n");
 	
-	returnValue = bitmapToRAW(&(p_env->p_primParam[index]->p_texture->p_data), p_env->p_primParam[index]->p_texture->size);
+	returnValue = bitmapToRAW(&(p_env->p_primParam[index]->p_texture->p_data), p_env->p_primParam[index]->p_texture->size, p_env->p_primParam[index]->p_texture->dimensions.w, p_env->p_primParam[index]->p_texture->dimensions.h);
 	
 	if(returnValue > 0)
 	{
@@ -200,12 +200,6 @@ void populateTextures(struct s_environment *p_env)
 	if(swapRedBlue(p_env->p_primParam[index]->p_texture->p_data, p_env->p_primParam[index]->p_texture->size) < 0)
 	{
 	  printf("\nSWAP FAILED\n");
-	  continue;
-	}
-	
-	if(reverseData(p_env->p_primParam[index]->p_texture->p_data, p_env->p_primParam[index]->p_texture->size) < 0)
-	{
-	  printf("\nREVERSE FAILED\n");
 	  continue;
 	}
 	

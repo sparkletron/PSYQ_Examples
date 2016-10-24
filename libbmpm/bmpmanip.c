@@ -18,6 +18,9 @@ int detectBMP(uint8_t const *p_data, int len);
 //set semiTrans to 1, will set the color specified to semiTransparent, 0 ignores color and sets all semiTrans
 //bits back to 0
 void setTransBit(uint8_t *op_data, uint8_t red, uint8_t green, uint8_t blue, uint8_t semiTrans, int len, int bmp);
+//swaps rows, as bitmap reverse the bits
+//0 success, -1 failure
+int reverseData(uint8_t *op_data, int len, int width, int height);
 
 
 //sets semi trans bit in image data to one, use on any data, will detect bitmap and go to offset, or just start at beginning for raw data
@@ -63,11 +66,21 @@ int removeSemiTrans(uint8_t *op_data, int len)
 
 //convert bitmap data to RAW, if no header detected, or incorrect header, this does nothing.
 //RAW data is converted to ABGR (MSB to LSB) from the bmp ARGB (16 bit images only)
-int bitmapToRAW(uint8_t **op_data, int len)
+int bitmapToRAW(uint8_t **op_data, int len, int width, int height)
 {
   int returnValue = 0;
   
   uint8_t *p_temp = NULL;
+  
+  if(width <= 0)
+  {
+    return -1;
+  }
+  
+  if(height <= 0)
+  {
+    return -1;
+  }
   
   returnValue = detectBMP(*op_data, len);
 
@@ -84,6 +97,10 @@ int bitmapToRAW(uint8_t **op_data, int len)
       {
 	*op_data = p_temp;
 	returnValue = len - returnValue;
+        if(reverseData(*op_data, returnValue, width, height) < 0)
+        {
+          returnValue = -1;
+        }
       }
       else
       {
@@ -132,39 +149,6 @@ int swapRedBlue(uint8_t *op_data, int len)
     op_data[index] = data & 0x00FF;
 
     op_data[index+1] = (data >> 8) & 0x00FF;
-  }
-  
-  return returnValue;
-}
-
-//swap bytes around, works with bitmap or raw data
-//0 or greater success, -1 failure
-int reverseData(uint8_t *op_data, int len)
-{
-  int index;
-  int halfLen = 0;
-  int returnValue = 0;
-  
-  returnValue = detectBMP(op_data, len);
-  
-  switch(returnValue)
-  {
-    case -1:
-      break;
-    case 0:
-    default:
-      halfLen = (len - returnValue)/2;
-      for(index = returnValue; index < halfLen; index += 2)
-      {
-	uint8_t tempData = op_data[index];
-	op_data[index] = op_data[len - index - 2];
-	op_data[len - index - 2] = tempData;
-	
-	tempData = op_data[index+1];
-	op_data[index+1] = op_data[len - index - 1];
-	op_data[len - index - 1] = tempData;
-      }
-      break;
   }
   
   return returnValue;
@@ -254,4 +238,40 @@ void setTransBit(uint8_t *op_data, uint8_t red, uint8_t green, uint8_t blue, uin
       op_data[index+1] &= (((semiTrans & 0x01) << 7) | 0x7F);
     }
   }
+}
+
+int reverseData(uint8_t *op_data, int len, int width, int height)
+{
+  int index;
+  int returnValue = 0;
+  
+  if(len <= 0)
+  {
+    return -1;
+  }
+  
+  returnValue = detectBMP(op_data, len);
+  
+  switch(returnValue)
+  {
+    case -1:
+      break;
+    case 0:
+      for(index = 0; index < height/2; index++)
+      {
+        uint8_t tempData[width * 2];
+        
+        memcpy(tempData, &op_data[index * width * 2], width * 2);
+        
+        memcpy(&op_data[index * width * 2], &op_data[len - ((index+1) * width * 2)], width * 2);
+        
+        memcpy(&op_data[len - ((index+1) * width * 2)], tempData, width * 2);
+      }
+      break;
+    default:
+      returnValue = -1;
+      break;
+  }
+  
+  return returnValue;
 }

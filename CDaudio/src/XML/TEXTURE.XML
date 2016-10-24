@@ -1,0 +1,26 @@
+<ACTOR_PRIM type="TYPE_FT4">
+  <vertex0>
+    <x>0</x>
+    <y>0</y>
+  </vertex0>
+  <color0>
+    <red>127</red>
+    <green>127</green>
+    <blue>127</blue>
+  </color0>
+  <width>50</width>
+  <height>50</height>
+  <texture>
+    <vertex0>
+      <x>0</x>
+      <y>0</y>
+    <vertex0>
+    <vramVertex>
+      <x>320</x>
+      <y>0</y>
+    </vramVertex>
+    <twidth>50</twidth>
+    <theight>50</theight>
+    <file>\\YAKKO.BMP;1</file>
+  </texture>
+</ACTOR_PRIM>
