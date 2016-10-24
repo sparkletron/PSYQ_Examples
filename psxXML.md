@@ -69,11 +69,17 @@ This information is used to create primitives and has the following methods avai
   <width>50</width>
   <height>50</height>
   <texture>
-    <x>320</x>
-    <y>0</y>
+    <vertex0>
+      <x>0</x>
+      <y>0</y>
+    <vertex0>
+    <vramVertex>
+      <x>320</x>
+      <y>0</y>
+    </vramVertex>
     <twidth>50</twidth>
     <theight>50</theight>
-    <file>BMP/LOCATION/TEST.BMP</file>
+    <file>\\YAKKO.BMP;1</file>
   </texture>
 </ACTOR_PRIM>
 ```

@@ -36,6 +36,7 @@ struct
 #define XML_VERTEX_1  "vertex1"
 #define XML_VERTEX_2  "vertex2"
 #define XML_VERTEX_3  "vertex3"
+#define XML_VRAM      "vramVertex"
 #define XML_X_CORR    "x"
 #define XML_Y_CORR    "y"
 #define XML_COLOR_0   "color0"
@@ -107,15 +108,15 @@ void freePrimData(struct s_primParam **p_primParam)
 {
   if(p_primParam != NULL)
   {
-//     if((*p_primParam)->p_texture != NULL)
-//     {
-//       if((*p_primParam)->p_texture->p_data != NULL)
-//       {
-// 	free((*p_primParam)->p_texture->p_data);
-//       }
-//       
-//       free((*p_primParam)->p_texture);
-//     }
+    if((*p_primParam)->p_texture != NULL)
+    {
+      if((*p_primParam)->p_texture->p_data != NULL)
+      {
+	free((*p_primParam)->p_texture->p_data);
+      }
+      
+      free((*p_primParam)->p_texture);
+    }
     
     free(*p_primParam);
   }
@@ -239,28 +240,28 @@ struct s_primParam *getPrimData()
       return NULL;
     }
     
-    p_primParam->p_texture->p_data = NULL;
+    returnValue = findVertex(&p_primParam->p_texture->vertex0, XML_VERTEX_0);
     
-    if(findXMLelem(XML_X_CORR) < 0)
+    if(returnValue < 0)
     {
+      printf("COULD NOT FIND VERTEX 0\n");
       free(p_primParam);
       return NULL;
     }
     
-    p_primParam->p_texture->vertex0.x = atoi(g_parserData.stringBuffer);
-    
     resetXMLblock();
     
-    if(findXMLelem(XML_Y_CORR) < 0)
+    returnValue = findVertex(&p_primParam->p_texture->vramVertex, XML_VRAM);
+    
+    if(returnValue < 0)
     {
+      printf("COULD NOT FIND VRAM\n");
       free(p_primParam);
       return NULL;
     }
     
-    p_primParam->p_texture->vertex0.y = atoi(g_parserData.stringBuffer);
-    
     resetXMLblock();
-    
+      
     if(findXMLelem(XML_TWIDTH) < 0)
     {
       free(p_primParam);
@@ -268,8 +269,6 @@ struct s_primParam *getPrimData()
     }
     
     p_primParam->p_texture->dimensions.w = atoi(g_parserData.stringBuffer);
-    
-    printf("\nTEXTURE W %d\n", p_primParam->p_texture->dimensions.w);
     
     resetXMLblock();
     
@@ -281,8 +280,6 @@ struct s_primParam *getPrimData()
     
     p_primParam->p_texture->dimensions.h = atoi(g_parserData.stringBuffer);
     
-    printf("\nTEXTURE H %d\n", p_primParam->p_texture->dimensions.h);
-    
     resetXMLblock();
     
     if(findXMLelem(XML_FILE) < 0)
@@ -292,7 +289,6 @@ struct s_primParam *getPrimData()
     }
     
     strcpy(p_primParam->p_texture->file, g_parserData.stringBuffer);
-    printf("\nTEXTURE FILE NAME %s\n",p_primParam->p_texture->file);
   }
   
   return p_primParam;

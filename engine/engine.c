@@ -63,11 +63,6 @@ void initEnv(struct s_environment *p_env, int numPrim)
   
   p_env->p_primParam = calloc(p_env->otSize, sizeof(struct s_primParam));
   
-  for(index = 0; index < p_env->primSize; index++)
-  {
-    p_env->p_primParam->p_texture = NULL;
-  }
-  
   // within the BIOS, if the address 0xBFC7FF52 equals 'E', set it as PAL (1). Otherwise, set it as NTSC (0)
   switch(*(char *)0xbfc7ff52=='E')
   {
@@ -180,21 +175,21 @@ void populateTextures(struct s_environment *p_env)
   
   for(index = 0; index < p_env->otSize; index++)
   {
-    if(p_env->p_primParam[index].p_texture != NULL)
+    if(p_env->p_primParam[index]->p_texture != NULL)
     {
-      printf("\nTEXTURE AT INDEX %d %s\n", index, p_env->p_primParam[index].p_texture->file);
+      printf("\nTEXTURE AT INDEX %d %s\n", index, p_env->p_primParam[index]->p_texture->file);
       
-      p_env->p_primParam[index].p_texture->p_data = (uint8_t *)loadFileFromCD(p_env->p_primParam[index].p_texture->file, &(p_env->p_primParam[index].p_texture->size));
+      p_env->p_primParam[index]->p_texture->p_data = (uint8_t *)loadFileFromCD(p_env->p_primParam[index]->p_texture->file, &(p_env->p_primParam[index]->p_texture->size));
       
-      if(p_env->p_primParam[index].p_texture->p_data != NULL)
+      if(p_env->p_primParam[index]->p_texture->p_data != NULL)
       {
 	printf("\nGETTING RAW\n");
 	
-	returnValue = bitmapToRAW(&(p_env->p_primParam[index].p_texture->p_data), p_env->p_primParam[index].p_texture->size);
+	returnValue = bitmapToRAW(&(p_env->p_primParam[index]->p_texture->p_data), p_env->p_primParam[index]->p_texture->size);
 	
 	if(returnValue > 0)
 	{
-	  p_env->p_primParam[index].p_texture->size = returnValue;
+	  p_env->p_primParam[index]->p_texture->size = returnValue;
 	}
 	else if(returnValue < 0)
 	{
@@ -202,18 +197,15 @@ void populateTextures(struct s_environment *p_env)
 	  continue;
 	}
 	
-	printf("\nSIZE %d\n", p_env->p_primParam[index].p_texture->size);
-	printf("\nPARAMAS %d %d %d %d\n", p_env->p_primParam[index].p_texture->vertex0.x, p_env->p_primParam[index].p_texture->vertex0.y, p_env->p_primParam[index].p_texture->dimensions.w, p_env->p_primParam[index].p_texture->dimensions.h);
-	
-	if(swapRedBlue(p_env->p_primParam[index].p_texture->p_data, p_env->p_primParam[index].p_texture->size) < 0)
+	if(swapRedBlue(p_env->p_primParam[index]->p_texture->p_data, p_env->p_primParam[index]->p_texture->size) < 0)
 	{
 	  printf("\nSWAP FAILED\n");
 	  continue;
 	}
 	
-	p_env->p_primParam[index].p_texture->id = LoadTPage((u_long *)p_env->p_primParam[index].p_texture->p_data, 2, 0, p_env->p_primParam[index].p_texture->vertex0.x, p_env->p_primParam[index].p_texture->vertex0.y, p_env->p_primParam[index].p_texture->dimensions.w, p_env->p_primParam[index].p_texture->dimensions.h);
+	p_env->p_primParam[index]->p_texture->id = LoadTPage((u_long *)p_env->p_primParam[index]->p_texture->p_data, 2, 0, p_env->p_primParam[index]->p_texture->vramVertex.x, p_env->p_primParam[index]->p_texture->vramVertex.y, p_env->p_primParam[index]->p_texture->dimensions.w, p_env->p_primParam[index]->p_texture->dimensions.h);
 	
-	printf("\nTPAGE ID: %d\n", p_env->p_primParam[index].p_texture->id);
+	printf("\nTPAGE ID: %d %d %d %d %d\n", p_env->p_primParam[index]->p_texture->id, p_env->p_primParam[index]->p_texture->vertex0.x, p_env->p_primParam[index]->p_texture->vertex0.y, p_env->p_primParam[index]->p_texture->dimensions.w, p_env->p_primParam[index]->p_texture->dimensions.h);
       }
     }
   }
@@ -222,33 +214,28 @@ void populateTextures(struct s_environment *p_env)
   {
     for(index = 0; index < p_env->otSize; index++)
     {
-      if(p_env->p_primParam[index].p_texture == NULL)
+      if(p_env->p_primParam[index]->p_texture != NULL)
       {
-	continue;
-      }
-      
-      p_env->buffer[buffIndex].p_primitive[index].type = p_env->p_primParam[index].type;
-      
-      switch(p_env->buffer[buffIndex].p_primitive[index].type)
-      {
-	case TYPE_FT4:
-	  printf("\nTYPE_FT4\n");
-	  ((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->tpage = p_env->p_primParam[index].p_texture->id;
-	  ((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->clut = 2;
-	  
-	  printf("\nID %d CLUT %d\n", ((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->tpage, ((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->clut);
-	  break;
-	case TYPE_GT4:
-	  ((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->tpage = p_env->p_primParam[index].p_texture->id;
-	  ((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->clut = 2;
-	  break;
-	case TYPE_SPRITE:
-	  SetDrawTPage((DR_TPAGE *)(&p_env->p_primParam[index].p_texture->tpage), 1, 0, p_env->p_primParam[index].p_texture->id);
-	  AddPrim(&(p_env->buffer[buffIndex].p_ot[index]), &p_env->p_primParam[index].p_texture->tpage);
-	  break;
-	default:
-	  printf("\nNon Texture Type at index %d\n", index);
-	  break;
+	p_env->buffer[buffIndex].p_primitive[index].type = p_env->p_primParam[index]->type;
+	
+	switch(p_env->buffer[buffIndex].p_primitive[index].type)
+	{
+	  case TYPE_FT4:
+	    printf("\nTYPE_FT4\n");
+	    ((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->tpage = p_env->p_primParam[index]->p_texture->id;
+	    printf("\nID %d CLUT %d\n", ((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->tpage, ((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->clut);
+	    break;
+	  case TYPE_GT4:
+	    ((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->tpage = p_env->p_primParam[index]->p_texture->id;
+	    break;
+	  case TYPE_SPRITE:
+	    SetDrawTPage((DR_TPAGE *)(&p_env->p_primParam[index]->p_texture->tpage), 1, 0, p_env->p_primParam[index]->p_texture->id);
+	    AddPrim(&(p_env->buffer[buffIndex].p_ot[index]), &p_env->p_primParam[index]->p_texture->tpage);
+	    break;
+	  default:
+	    printf("\nNon Texture Type at index %d\n", index);
+	    break;
+	}
       }
     }
   }
@@ -347,50 +334,51 @@ void populateOT(struct s_environment *p_env)
   {    
     for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
     {
-      p_env->buffer[buffIndex].p_primitive[index].type = p_env->p_primParam[index].type;
+      p_env->buffer[buffIndex].p_primitive[index].type = p_env->p_primParam[index]->type;
       
       switch(p_env->buffer[buffIndex].p_primitive[index].type)
       {
 	case TYPE_SPRITE:
 	  SetSprt((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data);
-	  setXY0((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y);
-	  setWH((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].dimensions.w,  p_env->p_primParam[index].dimensions.h);
-	  setUV0((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].p_texture->vertex0.x, p_env->p_primParam[index].p_texture->vertex0.y);
-	  setRGB0((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
+	  setXY0((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->vertex0.x, p_env->p_primParam[index]->vertex0.y);
+	  setWH((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->dimensions.w,  p_env->p_primParam[index]->dimensions.h);
+	  setUV0((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->p_texture->vertex0.x, p_env->p_primParam[index]->p_texture->vertex0.y);
+	  setRGB0((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
 	  break;
 	case TYPE_TILE:
 	  setTile((TILE *)p_env->buffer[buffIndex].p_primitive[index].data);
-	  setXY0((TILE *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y);
-	  setWH((TILE *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].dimensions.w,  p_env->p_primParam[index].dimensions.h);
-	  setRGB0((TILE *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
+	  setXY0((TILE *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->vertex0.x, p_env->p_primParam[index]->vertex0.y);
+	  setWH((TILE *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->dimensions.w,  p_env->p_primParam[index]->dimensions.h);
+	  setRGB0((TILE *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
 	  break;
 	case TYPE_F4:
 	  SetPolyF4((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data);
-	  setXYWH((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].dimensions.w, p_env->p_primParam[index].dimensions.h);
-	  setRGB0((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
+	  setXYWH((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->vertex0.x, p_env->p_primParam[index]->vertex0.y, p_env->p_primParam[index]->dimensions.w, p_env->p_primParam[index]->dimensions.h);
+	  setRGB0((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
 	  break;
 	case TYPE_FT4:
 	  SetPolyFT4((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data);
-	  setUVWH((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].p_texture->vertex0.x, p_env->p_primParam[index].p_texture->vertex0.y, p_env->p_primParam[index].p_texture->dimensions.w, p_env->p_primParam[index].p_texture->dimensions.h);
-	  setXYWH((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].dimensions.w, p_env->p_primParam[index].dimensions.h);
-	  setRGB0((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
+	  setUVWH((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->p_texture->vertex0.x, p_env->p_primParam[index]->p_texture->vertex0.y, p_env->p_primParam[index]->p_texture->dimensions.w, p_env->p_primParam[index]->p_texture->dimensions.h);
+	  setXYWH((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->vertex0.x, p_env->p_primParam[index]->vertex0.y, p_env->p_primParam[index]->dimensions.w, p_env->p_primParam[index]->dimensions.h);
+	  setRGB0((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
+	  printf("\nTYPE_FT4 SET ID: %d %d %d %d %d\n", p_env->p_primParam[index]->p_texture->id, p_env->p_primParam[index]->p_texture->vertex0.x, p_env->p_primParam[index]->p_texture->vertex0.y, p_env->p_primParam[index]->p_texture->dimensions.w, p_env->p_primParam[index]->p_texture->dimensions.h);
 	  break;
 	case TYPE_G4:
 	  SetPolyG4((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data);
-	  setXYWH((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].dimensions.w, p_env->p_primParam[index].dimensions.h);       
-	  setRGB0((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
-	  setRGB1((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color1.r, p_env->p_primParam[index].color1.g, p_env->p_primParam[index].color1.b);
-	  setRGB2((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color2.r, p_env->p_primParam[index].color2.g, p_env->p_primParam[index].color2.b);
-	  setRGB3((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color3.r, p_env->p_primParam[index].color3.g, p_env->p_primParam[index].color3.b);
+	  setXYWH((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->vertex0.x, p_env->p_primParam[index]->vertex0.y, p_env->p_primParam[index]->dimensions.w, p_env->p_primParam[index]->dimensions.h);       
+	  setRGB0((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
+	  setRGB1((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color1.r, p_env->p_primParam[index]->color1.g, p_env->p_primParam[index]->color1.b);
+	  setRGB2((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color2.r, p_env->p_primParam[index]->color2.g, p_env->p_primParam[index]->color2.b);
+	  setRGB3((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color3.r, p_env->p_primParam[index]->color3.g, p_env->p_primParam[index]->color3.b);
 	  break;
 	case TYPE_GT4:
 	  SetPolyGT4((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data);
-	  setUVWH((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].p_texture->vertex0.x, p_env->p_primParam[index].p_texture->vertex0.y, p_env->p_primParam[index].p_texture->dimensions.w, p_env->p_primParam[index].p_texture->dimensions.h);
-	  setXYWH((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].dimensions.w, p_env->p_primParam[index].dimensions.h);      
-	  setRGB0((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
-	  setRGB1((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color1.r, p_env->p_primParam[index].color1.g, p_env->p_primParam[index].color1.b);
-	  setRGB2((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color2.r, p_env->p_primParam[index].color2.g, p_env->p_primParam[index].color2.b);
-	  setRGB3((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index].color3.r, p_env->p_primParam[index].color3.g, p_env->p_primParam[index].color3.b);
+	  setUVWH((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->p_texture->vertex0.x, p_env->p_primParam[index]->p_texture->vertex0.y, p_env->p_primParam[index]->p_texture->dimensions.w, p_env->p_primParam[index]->p_texture->dimensions.h);
+	  setXYWH((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->vertex0.x, p_env->p_primParam[index]->vertex0.y, p_env->p_primParam[index]->dimensions.w, p_env->p_primParam[index]->dimensions.h);      
+	  setRGB0((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
+	  setRGB1((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color1.r, p_env->p_primParam[index]->color1.g, p_env->p_primParam[index]->color1.b);
+	  setRGB2((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color2.r, p_env->p_primParam[index]->color2.g, p_env->p_primParam[index]->color2.b);
+	  setRGB3((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color3.r, p_env->p_primParam[index]->color3.g, p_env->p_primParam[index]->color3.b);
 	  break;
 	default:
 	  printf("\nERROR, NO TYPE DEFINED AT INDEX %d\n", index);
@@ -412,39 +400,39 @@ void updatePrim(struct s_environment *p_env)
     {
       
       case TYPE_SPRITE:
-	setXY0((SPRT *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y);
-	setWH((SPRT *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].dimensions.w,  p_env->p_primParam[index].dimensions.h);
-	setUV0((SPRT *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].p_texture->vertex0.x, p_env->p_primParam[index].p_texture->vertex0.y);
-	setRGB0((SPRT *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
+	setXY0((SPRT *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->vertex0.x, p_env->p_primParam[index]->vertex0.y);
+	setWH((SPRT *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->dimensions.w,  p_env->p_primParam[index]->dimensions.h);
+	setUV0((SPRT *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->p_texture->vertex0.x, p_env->p_primParam[index]->p_texture->vertex0.y);
+	setRGB0((SPRT *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
 	break;
       case TYPE_TILE:
-	setXY0((TILE *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y);
-	setWH((TILE *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].dimensions.w,  p_env->p_primParam[index].dimensions.h);
-	setRGB0((TILE *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
+	setXY0((TILE *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->vertex0.x, p_env->p_primParam[index]->vertex0.y);
+	setWH((TILE *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->dimensions.w,  p_env->p_primParam[index]->dimensions.h);
+	setRGB0((TILE *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
 	break;
       case TYPE_F4:
-	setXYWH((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].dimensions.w, p_env->p_primParam[index].dimensions.h);
-	setRGB0((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
+	setXYWH((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->vertex0.x, p_env->p_primParam[index]->vertex0.y, p_env->p_primParam[index]->dimensions.w, p_env->p_primParam[index]->dimensions.h);
+	setRGB0((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
 	break;
       case TYPE_FT4:
-	setUVWH((POLY_FT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].p_texture->vertex0.x, p_env->p_primParam[index].p_texture->vertex0.y, p_env->p_primParam[index].p_texture->dimensions.w, p_env->p_primParam[index].p_texture->dimensions.h);
-	setXYWH((POLY_FT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].dimensions.w, p_env->p_primParam[index].dimensions.h);
-	setRGB0((POLY_FT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
+	setUVWH((POLY_FT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->p_texture->vertex0.x, p_env->p_primParam[index]->p_texture->vertex0.y, p_env->p_primParam[index]->p_texture->dimensions.w, p_env->p_primParam[index]->p_texture->dimensions.h);
+	setXYWH((POLY_FT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->vertex0.x, p_env->p_primParam[index]->vertex0.y, p_env->p_primParam[index]->dimensions.w, p_env->p_primParam[index]->dimensions.h);
+	setRGB0((POLY_FT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
 	break;
       case TYPE_G4:
-	setXYWH((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].dimensions.w, p_env->p_primParam[index].dimensions.h);       
-	setRGB0((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
-	setRGB1((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color1.r, p_env->p_primParam[index].color1.g, p_env->p_primParam[index].color1.b);
-	setRGB2((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color2.r, p_env->p_primParam[index].color2.g, p_env->p_primParam[index].color2.b);
-	setRGB3((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color3.r, p_env->p_primParam[index].color3.g, p_env->p_primParam[index].color3.b);
+	setXYWH((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->vertex0.x, p_env->p_primParam[index]->vertex0.y, p_env->p_primParam[index]->dimensions.w, p_env->p_primParam[index]->dimensions.h);       
+	setRGB0((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
+	setRGB1((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color1.r, p_env->p_primParam[index]->color1.g, p_env->p_primParam[index]->color1.b);
+	setRGB2((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color2.r, p_env->p_primParam[index]->color2.g, p_env->p_primParam[index]->color2.b);
+	setRGB3((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color3.r, p_env->p_primParam[index]->color3.g, p_env->p_primParam[index]->color3.b);
 	break;
       case TYPE_GT4:
-	setUVWH((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].p_texture->vertex0.x, p_env->p_primParam[index].p_texture->vertex0.y, p_env->p_primParam[index].p_texture->dimensions.w, p_env->p_primParam[index].p_texture->dimensions.h);
-	setXYWH((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].vertex0.x, p_env->p_primParam[index].vertex0.y, p_env->p_primParam[index].dimensions.w, p_env->p_primParam[index].dimensions.h);      
-	setRGB0((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color0.r, p_env->p_primParam[index].color0.g, p_env->p_primParam[index].color0.b);
-	setRGB1((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color1.r, p_env->p_primParam[index].color1.g, p_env->p_primParam[index].color1.b);
-	setRGB2((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color2.r, p_env->p_primParam[index].color2.g, p_env->p_primParam[index].color2.b);
-	setRGB3((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index].color3.r, p_env->p_primParam[index].color3.g, p_env->p_primParam[index].color3.b);
+	setUVWH((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->p_texture->vertex0.x, p_env->p_primParam[index]->p_texture->vertex0.y, p_env->p_primParam[index]->p_texture->dimensions.w, p_env->p_primParam[index]->p_texture->dimensions.h);
+	setXYWH((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->vertex0.x, p_env->p_primParam[index]->vertex0.y, p_env->p_primParam[index]->dimensions.w, p_env->p_primParam[index]->dimensions.h);      
+	setRGB0((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
+	setRGB1((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color1.r, p_env->p_primParam[index]->color1.g, p_env->p_primParam[index]->color1.b);
+	setRGB2((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color2.r, p_env->p_primParam[index]->color2.g, p_env->p_primParam[index]->color2.b);
+	setRGB3((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color3.r, p_env->p_primParam[index]->color3.g, p_env->p_primParam[index]->color3.b);
 	break;
       default:
 	printf("\nUnknown Type for update at index %d %d\n", index, p_env->p_currBuffer->p_primitive[index].type);
@@ -468,42 +456,42 @@ void movPrim(struct s_environment *p_env)
   {
     if(p_env->prevTime == 0 || ((VSync(-1) - p_env->prevTime) > 60))
     {
-      p_env->p_primParam[p_env->primCur].color0.r = rand() % 256;
-      p_env->p_primParam[p_env->primCur].color0.g = rand() % 256;
-      p_env->p_primParam[p_env->primCur].color0.b = rand() % 256;
+      p_env->p_primParam[p_env->primCur]->color0.r = rand() % 256;
+      p_env->p_primParam[p_env->primCur]->color0.g = rand() % 256;
+      p_env->p_primParam[p_env->primCur]->color0.b = rand() % 256;
       p_env->prevTime = VSync(-1);
     }
   }
   
   if(p_env->gamePad.one.third.bit.up == 0)
   {
-    if(p_env->p_primParam[p_env->primCur].vertex0.y > 0)
+    if(p_env->p_primParam[p_env->primCur]->vertex0.y > 0)
     {
-      p_env->p_primParam[p_env->primCur].vertex0.y -= 1;
+      p_env->p_primParam[p_env->primCur]->vertex0.y -= 1;
     }
   }
   
   if(p_env->gamePad.one.third.bit.right == 0)
   {
-    if((p_env->p_primParam[p_env->primCur].vertex0.x + p_env->p_primParam[p_env->primCur].dimensions.w) < SCREEN_WIDTH)
+    if((p_env->p_primParam[p_env->primCur]->vertex0.x + p_env->p_primParam[p_env->primCur]->dimensions.w) < SCREEN_WIDTH)
     {
-      p_env->p_primParam[p_env->primCur].vertex0.x += 1;
+      p_env->p_primParam[p_env->primCur]->vertex0.x += 1;
     }
   }
   
   if(p_env->gamePad.one.third.bit.down == 0)
   {
-    if((p_env->p_primParam[p_env->primCur].vertex0.y + p_env->p_primParam[p_env->primCur].dimensions.h) < SCREEN_HEIGHT)
+    if((p_env->p_primParam[p_env->primCur]->vertex0.y + p_env->p_primParam[p_env->primCur]->dimensions.h) < SCREEN_HEIGHT)
     {
-      p_env->p_primParam[p_env->primCur].vertex0.y += 1;
+      p_env->p_primParam[p_env->primCur]->vertex0.y += 1;
     }
   }
   
   if(p_env->gamePad.one.third.bit.left == 0)
   {
-    if(p_env->p_primParam[p_env->primCur].vertex0.x > 0)
+    if(p_env->p_primParam[p_env->primCur]->vertex0.x > 0)
     {
-      p_env->p_primParam[p_env->primCur].vertex0.x -= 1;
+      p_env->p_primParam[p_env->primCur]->vertex0.x -= 1;
     }
   }
   

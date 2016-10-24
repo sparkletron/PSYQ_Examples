@@ -5,7 +5,7 @@ PSX_CC = CCPSX.EXE
 PSX_CPE2X = CPE2XWIN.EXE
 PSX_CFLAGS = -O3 -Dpsx -c
 PSX_ADDRESS = 0x80010000
-PSX_LDFLAGS =  -l libpad -l libmcrd -l libds -l libeng -l libspu -l libyxml -l libgp -L ../../libgetprim -L ../../YXML_PSYQ_PORT -L ../../engine -Xo$(PSX_ADDRESS)
+PSX_LDFLAGS =  -l libpad -l libmcrd -l libds -l libeng -l libspu -l libyxml -l libgp -l libbmpm -L ../../libbmpm -L ../../libgetprim -L ../../YXML_PSYQ_PORT -L ../../engine -Xo$(PSX_ADDRESS)
 PSX_OBJECTS = $(SOURCES:.c=.obj)
 CPE = $(PSX_EXEC:.exe=.cpe)
 SYM = $(PSX_EXEC:.exe=.sym)

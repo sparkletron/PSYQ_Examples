@@ -39,11 +39,11 @@ int main()
 void movUp(struct s_environment *p_env, int len)
 {
   int index;
-  if(p_env->p_primParam[0].vertex0.y > 0)
+  if(p_env->p_primParam[0]->vertex0.y > 0)
   {
     for(index = len - 2; index >= 0; index--)
     {
-      p_env->p_primParam[index].vertex0.y -= 2 * (len - index - 1);
+      p_env->p_primParam[index]->vertex0.y -= 2 * (len - index - 1);
     }
   }
 }
@@ -51,11 +51,11 @@ void movUp(struct s_environment *p_env, int len)
 void movDown(struct s_environment *p_env, int len)
 {
   int index;
-  if((p_env->p_primParam[0].vertex0.y + p_env->p_primParam[0].dimensions.h) < SCREEN_HEIGHT)
+  if((p_env->p_primParam[0]->vertex0.y + p_env->p_primParam[0]->dimensions.h) < SCREEN_HEIGHT)
   {
     for(index = len - 2; index >= 0; index--)
     {
-      p_env->p_primParam[index].vertex0.y += 2 * (len - index - 1);;
+      p_env->p_primParam[index]->vertex0.y += 2 * (len - index - 1);;
     }
   }
 }
@@ -63,11 +63,11 @@ void movDown(struct s_environment *p_env, int len)
 void movLeft(struct s_environment *p_env, int len)
 {
   int index;
-  if(p_env->p_primParam[0].vertex0.x > 0)
+  if(p_env->p_primParam[0]->vertex0.x > 0)
   {
     for(index = len - 2; index >= 0; index--)
     {
-      p_env->p_primParam[index].vertex0.x -= 2 * (len - index - 1);
+      p_env->p_primParam[index]->vertex0.x -= 2 * (len - index - 1);
     }
   }
 }
@@ -75,11 +75,11 @@ void movLeft(struct s_environment *p_env, int len)
 void movRight(struct s_environment *p_env, int len)
 {
   int index;
-  if((p_env->p_primParam[0].vertex0.x + p_env->p_primParam[0].dimensions.w) < SCREEN_WIDTH)
+  if((p_env->p_primParam[0]->vertex0.x + p_env->p_primParam[0]->dimensions.w) < SCREEN_WIDTH)
   {
     for(index = len - 2; index >= 0; index--)
     {
-      p_env->p_primParam[index].vertex0.x += 2 * (len - index - 1);
+      p_env->p_primParam[index]->vertex0.x += 2 * (len - index - 1);
     }
   }
 }
@@ -113,22 +113,22 @@ void movSqrTail(struct s_environment *p_env)
   {
     for(index = 0; index < 2; index++)
     {
-      if(p_env->p_primParam[p_env->primCur].vertex0.x > SCREEN_WIDTH / 2 - 25)
+      if(p_env->p_primParam[p_env->primCur]->vertex0.x > SCREEN_WIDTH / 2 - 25)
       {
 	movLeft(p_env, p_env->otSize);
       }
       
-      if(p_env->p_primParam[p_env->primCur].vertex0.x  < SCREEN_WIDTH / 2 - 25)
+      if(p_env->p_primParam[p_env->primCur]->vertex0.x  < SCREEN_WIDTH / 2 - 25)
       {
 	movRight(p_env, p_env->otSize);
       }
       
-      if(p_env->p_primParam[p_env->primCur].vertex0.y < SCREEN_HEIGHT / 2 - 25)
+      if(p_env->p_primParam[p_env->primCur]->vertex0.y < SCREEN_HEIGHT / 2 - 25)
       {
 	movDown(p_env, p_env->otSize);
       }
       
-      if(p_env->p_primParam[p_env->primCur].vertex0.y > SCREEN_HEIGHT / 2 -25)
+      if(p_env->p_primParam[p_env->primCur]->vertex0.y > SCREEN_HEIGHT / 2 -25)
       {
 	movUp(p_env, p_env->otSize);
       }
@@ -142,38 +142,30 @@ void createGameObjects(struct s_environment *p_env)
 {
   int index;
   int buffIndex;
-
-  struct s_primParam *p_primParam[10] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
   
   for(index = 0; index < p_env->otSize; index++)
   {
-    p_primParam[index] = getObjects("\\SQ1.XML;1");
-    
-    if(p_primParam[index] == NULL)
+    p_env->p_primParam[index] = getObjects("\\SQ1.XML;1");
+
+    if(p_env->p_primParam[index] != NULL)
     {
-      continue;
-    }
-    
-    memcpy(&(p_env->p_primParam[index]), p_primParam[index], sizeof(struct s_primParam));
-    
-    p_env->p_primParam[index].color0.r = rand() % 256;
-    p_env->p_primParam[index].color0.g = rand() % 256;
-    p_env->p_primParam[index].color0.b = rand() % 256;
-    p_env->p_primParam[index].color1.r = rand() % 256;
-    p_env->p_primParam[index].color1.g = rand() % 256;
-    p_env->p_primParam[index].color1.b = rand() % 256;
-    p_env->p_primParam[index].color2.r = rand() % 256;
-    p_env->p_primParam[index].color2.g = rand() % 256;
-    p_env->p_primParam[index].color2.b = rand() % 256;
-    p_env->p_primParam[index].color3.r = rand() % 256;
-    p_env->p_primParam[index].color3.g = rand() % 256;
-    p_env->p_primParam[index].color3.b = rand() % 256;
-    
-    freeObjects(&p_primParam[index]);
-    
-    for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
-    {
-      p_env->buffer[buffIndex].p_primitive[index].data = calloc(1, sizeof(POLY_G4));
+      p_env->p_primParam[index]->color0.r = rand() % 256;
+      p_env->p_primParam[index]->color0.g = rand() % 256;
+      p_env->p_primParam[index]->color0.b = rand() % 256;
+      p_env->p_primParam[index]->color1.r = rand() % 256;
+      p_env->p_primParam[index]->color1.g = rand() % 256;
+      p_env->p_primParam[index]->color1.b = rand() % 256;
+      p_env->p_primParam[index]->color2.r = rand() % 256;
+      p_env->p_primParam[index]->color2.g = rand() % 256;
+      p_env->p_primParam[index]->color2.b = rand() % 256;
+      p_env->p_primParam[index]->color3.r = rand() % 256;
+      p_env->p_primParam[index]->color3.g = rand() % 256;
+      p_env->p_primParam[index]->color3.b = rand() % 256;
+      
+      for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
+      {
+	p_env->buffer[buffIndex].p_primitive[index].data = calloc(1, sizeof(POLY_G4));
+      }
     }
   }
 }

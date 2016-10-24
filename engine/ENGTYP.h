@@ -124,6 +124,7 @@ struct s_texture
   char file[256];
   
   struct s_vertex vertex0;
+  struct s_vertex vramVertex;
   struct s_dimensions dimensions;
   struct s_tpage tpage;
   
@@ -157,7 +158,7 @@ struct s_environment
   int bufSize;
   int prevTime;
   
-  struct s_primParam *p_primParam;
+  struct s_primParam **p_primParam;
   
   struct s_buffer buffer[DOUBLE_BUF];
   

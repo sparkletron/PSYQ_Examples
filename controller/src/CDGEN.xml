@@ -13,7 +13,7 @@
 		cue_sheet	- Optional, file name of the cue sheet for the image file
 					  (required if more than one track is specified).
 -->
-<iso_project image_name="IMAGE/myimage.bin" cue_sheet="IMAGE/myimage.cue">
+<iso_project image_name="CDROM/myimage.bin" cue_sheet="CDROM/myimage.cue">
 
 	<!-- <track>
 			Specifies a track to the ISO project. This example element creates a data

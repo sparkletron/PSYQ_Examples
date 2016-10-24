@@ -10,11 +10,4 @@
   </color0>
   <width>50</width>
   <height>50</height>
-  <texture>
-    <x>320</x>
-    <y>0</y>
-    <twidth>50</twidth>
-    <theight>50</theight>
-    <file>BMP/BALLS/HAHA/NOES/TEST.BMP</file>
-  </texture>
 </ACTOR_PRIM>
