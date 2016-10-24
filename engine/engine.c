@@ -203,11 +203,11 @@ void populateTextures(struct s_environment *p_env)
 	  continue;
 	}
 	
-// 	if(reverseData(p_env->p_primParam[index]->p_texture->p_data, p_env->p_primParam[index]->p_texture->size) < 0)
-// 	{
-// 	  printf("\nREVERSE FAILED\n");
-// 	  continue;
-// 	}
+	if(reverseData(p_env->p_primParam[index]->p_texture->p_data, p_env->p_primParam[index]->p_texture->size) < 0)
+	{
+	  printf("\nREVERSE FAILED\n");
+	  continue;
+	}
 	
 	p_env->p_primParam[index]->p_texture->id = LoadTPage((u_long *)p_env->p_primParam[index]->p_texture->p_data, 2, 0, p_env->p_primParam[index]->p_texture->vramVertex.x, p_env->p_primParam[index]->p_texture->vramVertex.y, p_env->p_primParam[index]->p_texture->dimensions.w, p_env->p_primParam[index]->p_texture->dimensions.h);
 	

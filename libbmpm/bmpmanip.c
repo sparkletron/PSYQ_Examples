@@ -154,10 +154,14 @@ int reverseData(uint8_t *op_data, int len)
     case 0:
     default:
       halfLen = (len - returnValue)/2;
-      for(index = returnValue; index < halfLen; index++)
+      for(index = returnValue; index < halfLen; index += 2)
       {
 	uint8_t tempData = op_data[index];
-	op_data[index] = op_data[len - index - 1];
+	op_data[index] = op_data[len - index - 2];
+	op_data[len - index - 2] = tempData;
+	
+	tempData = op_data[index+1];
+	op_data[index+1] = op_data[len - index - 1];
 	op_data[len - index - 1] = tempData;
       }
       break;
