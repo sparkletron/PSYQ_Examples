@@ -173,7 +173,6 @@ void display(struct s_environment *p_env)
 void populateTextures(struct s_environment *p_env)
 {
   int index;
-  int index2;
   int buffIndex;
   int returnValue = 0;
   
@@ -212,11 +211,6 @@ void populateTextures(struct s_environment *p_env)
 	  continue;
 	}
 	
-	for(index2 = 0; index2 < p_env->p_primParam[index].p_texture->size; index2++)
-	{
-	  printf("\n%d\n", p_env->p_primParam[index].p_texture->p_data[index2]);
-	}
-	
 	p_env->p_primParam[index].p_texture->id = LoadTPage((u_long *)p_env->p_primParam[index].p_texture->p_data, 2, 0, p_env->p_primParam[index].p_texture->vertex0.x, p_env->p_primParam[index].p_texture->vertex0.y, p_env->p_primParam[index].p_texture->dimensions.w, p_env->p_primParam[index].p_texture->dimensions.h);
 	
 	printf("\nTPAGE ID: %d\n", p_env->p_primParam[index].p_texture->id);
@@ -238,10 +232,15 @@ void populateTextures(struct s_environment *p_env)
       switch(p_env->buffer[buffIndex].p_primitive[index].type)
       {
 	case TYPE_FT4:
+	  printf("\nTYPE_FT4\n");
 	  ((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->tpage = p_env->p_primParam[index].p_texture->id;
+	  ((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->clut = 2;
+	  
+	  printf("\nID %d CLUT %d\n", ((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->tpage, ((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->clut);
 	  break;
 	case TYPE_GT4:
 	  ((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->tpage = p_env->p_primParam[index].p_texture->id;
+	  ((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->clut = 2;
 	  break;
 	case TYPE_SPRITE:
 	  SetDrawTPage((DR_TPAGE *)(&p_env->p_primParam[index].p_texture->tpage), 1, 0, p_env->p_primParam[index].p_texture->id);
