@@ -134,7 +134,36 @@ int swapRedBlue(uint8_t *op_data, int len)
     op_data[index+1] = (data >> 8) & 0x00FF;
   }
   
-  return 0;
+  return returnValue;
+}
+
+//swap bytes around, works with bitmap or raw data
+//0 or greater success, -1 failure
+int reverseData(uint8_t *op_data, int len)
+{
+  int index;
+  int halfLen = 0;
+  int returnValue = 0;
+  
+  returnValue = detectBMP(op_data, len);
+  
+  switch(returnValue)
+  {
+    case -1:
+      break;
+    case 0:
+    default:
+      halfLen = (len - returnValue)/2;
+      for(index = returnValue; index < halfLen; index++)
+      {
+	uint8_t tempData = op_data[index];
+	op_data[index] = op_data[len - index - 1];
+	op_data[len - index - 1] = tempData;
+      }
+      break;
+  }
+  
+  return returnValue;
 }
 
 //detects bitmap image, if it exists and is of the right type
