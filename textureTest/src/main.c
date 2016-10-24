@@ -7,20 +7,16 @@
  * 
 */
 
-#include "engine.h"
-#include "image.h"
-
-extern unsigned char e_image[];
+#include <engine.h>
 
 void createGameObjects(struct s_environment *p_env);
 
 int main() 
 {
-  char *p_title = "Texture Example\nLoaded From Header";
-  u_long *p_address[] = {(u_long *)e_image, (u_long *)e_image};
+  char *p_title = "Texture Example\nLoaded From CD\nBITMAP to PSX DATA CONV";
   struct s_environment environment;
 
-  initEnv(&environment, 2); // setup the graphics (seen below)
+  initEnv(&environment, 1); // setup the graphics (seen below)
   
   environment.envMessage.p_data = (int *)&environment.gamePad.one;
   environment.envMessage.p_message = NULL;
@@ -28,9 +24,9 @@ int main()
   
   createGameObjects(&environment);
   
-  populateTPage(&environment, p_address, environment.otSize);
-  
   populateOT(&environment);
+  
+  populateTextures(&environment);
 
   while (1) // draw and display forever
   {
@@ -45,25 +41,39 @@ void createGameObjects(struct s_environment *p_env)
 {
   int index;
   int buffIndex;
+
+  struct s_primParam *p_primParam = NULL;
+  
+  p_primParam = getObjects("\\TEXTURE.XML;1");
+ 
+  if(p_primParam == NULL)
+  {
+    return;
+  }
   
   for(index = 0; index < p_env->otSize; index++)
   {
-    p_env->p_primParam[index].vertex0.x = 0;
-    p_env->p_primParam[index].vertex0.y = 0;
-    p_env->p_primParam[index].textureVertex0.x = 0;
-    p_env->p_primParam[index].textureVertex0.y = 0;
-    p_env->p_primParam[index].primSize.w = 50;
-    p_env->p_primParam[index].primSize.h = 50;
-    p_env->p_primParam[index].textureSize.w = 50;
-    p_env->p_primParam[index].textureSize.h = 50;
-    p_env->p_primParam[index].color0.r = 127;
-    p_env->p_primParam[index].color0.g = 127;
-    p_env->p_primParam[index].color0.b = 127;
-    p_env->p_primParam[index].type = TYPE_FT4;
+    memcpy(&(p_env->p_primParam[index]), p_primParam, sizeof(struct s_primParam)); 
     
-    for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
+//     printf("\nALLOCATING\n");
+//     
+//     p_env->p_primParam[index].p_texture = calloc(1, sizeof(struct s_texture));
+//     
+//     memcpy(&(p_env->p_primParam[index].p_texture), p_primParam->p_texture, sizeof(struct s_texture));
+// 
+//     printf("\nCOPY DONE\n");
+    
+    for(buffIndex = 0; buffIndex < DOUBLE_BUF; buffIndex++)
     {
+      printf("\nBUFFER\n");
       p_env->buffer[buffIndex].p_primitive[index].data = calloc(1, sizeof(POLY_FT4));
+      printf("\nBUFFER DONE\n");
     }
   }
+  
+  printf("\nSETUP DONE\n");
+  
+  freeObjects(&p_primParam);
+  
+  printf("\nLEAVING\n");
 }

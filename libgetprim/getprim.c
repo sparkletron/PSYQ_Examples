@@ -107,15 +107,15 @@ void freePrimData(struct s_primParam **p_primParam)
 {
   if(p_primParam != NULL)
   {
-    if((*p_primParam)->p_texture != NULL)
-    {
-      if((*p_primParam)->p_texture->p_data != NULL)
-      {
-	free((*p_primParam)->p_texture->p_data);
-      }
-      
-      free((*p_primParam)->p_texture);
-    }
+//     if((*p_primParam)->p_texture != NULL)
+//     {
+//       if((*p_primParam)->p_texture->p_data != NULL)
+//       {
+// 	free((*p_primParam)->p_texture->p_data);
+//       }
+//       
+//       free((*p_primParam)->p_texture);
+//     }
     
     free(*p_primParam);
   }
@@ -239,6 +239,8 @@ struct s_primParam *getPrimData()
       return NULL;
     }
     
+    p_primParam->p_texture->p_data = NULL;
+    
     if(findXMLelem(XML_X_CORR) < 0)
     {
       free(p_primParam);
@@ -267,6 +269,8 @@ struct s_primParam *getPrimData()
     
     p_primParam->p_texture->dimensions.w = atoi(g_parserData.stringBuffer);
     
+    printf("\nTEXTURE W %d\n", p_primParam->p_texture->dimensions.w);
+    
     resetXMLblock();
     
     if(findXMLelem(XML_THEIGHT) < 0)
@@ -277,6 +281,8 @@ struct s_primParam *getPrimData()
     
     p_primParam->p_texture->dimensions.h = atoi(g_parserData.stringBuffer);
     
+    printf("\nTEXTURE H %d\n", p_primParam->p_texture->dimensions.h);
+    
     resetXMLblock();
     
     if(findXMLelem(XML_FILE) < 0)
@@ -286,6 +292,7 @@ struct s_primParam *getPrimData()
     }
     
     strcpy(p_primParam->p_texture->file, g_parserData.stringBuffer);
+    printf("\nTEXTURE FILE NAME %s\n",p_primParam->p_texture->file);
   }
   
   return p_primParam;

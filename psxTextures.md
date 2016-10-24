@@ -2,7 +2,7 @@
 
 #### Library: libgs.h, libgpu.h, libgte.h
 
-#### Example: textureTest, textureTestCD
+#### Example: textureTest
 
 ### Utilitys
 

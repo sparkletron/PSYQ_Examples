@@ -35,8 +35,10 @@ void setupSound(struct s_environment *p_env);
 void playCDtracks(int *p_tracks);
 //update display
 void display(struct s_environment *p_env);
+//populate textures
+void populateTextures(struct s_environment *p_env);
 //load a tim from CD, return address to load tim from in memory.
-void *loadFileFromCD(char *p_path);
+void *loadFileFromCD(char *p_path, int *op_len);
 //get objects from xml files
 struct s_primParam *getObjects(char *fileName);
 //cleanup primitives

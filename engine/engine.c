@@ -29,6 +29,7 @@
 #include <libapi.h>
 #include <sys/file.h>
 #include <getprim.h>
+#include <bmpmanip.h>
 
 u_long __ramsize = 0x00200000;  //force 2 megabytes of RAM
 u_long __stacksize = 0x00004000; //force 16 kilobytes of stack
@@ -169,7 +170,92 @@ void display(struct s_environment *p_env)
   FntPrint("%s\n%s\n%X", p_env->envMessage.p_title, p_env->envMessage.p_message, *p_env->envMessage.p_data);
 }
 
-void *loadFileFromCD(char *p_path)
+void populateTextures(struct s_environment *p_env)
+{
+  int index;
+  int index2;
+  int buffIndex;
+  int returnValue = 0;
+  
+  printf("\nStarted Getting texture info\n");
+  
+  for(index = 0; index < p_env->otSize; index++)
+  {
+    if(p_env->p_primParam[index].p_texture != NULL)
+    {
+      printf("\nTEXTURE AT INDEX %d %s\n", index, p_env->p_primParam[index].p_texture->file);
+      
+      p_env->p_primParam[index].p_texture->p_data = (uint8_t *)loadFileFromCD(p_env->p_primParam[index].p_texture->file, &(p_env->p_primParam[index].p_texture->size));
+      
+      if(p_env->p_primParam[index].p_texture->p_data != NULL)
+      {
+	printf("\nGETTING RAW\n");
+	
+	returnValue = bitmapToRAW(&(p_env->p_primParam[index].p_texture->p_data), p_env->p_primParam[index].p_texture->size);
+	
+	if(returnValue > 0)
+	{
+	  p_env->p_primParam[index].p_texture->size = returnValue;
+	}
+	else if(returnValue < 0)
+	{
+	  printf("\nBAD DATA\n");
+	  continue;
+	}
+	
+	printf("\nSIZE %d\n", p_env->p_primParam[index].p_texture->size);
+	printf("\nPARAMAS %d %d %d %d\n", p_env->p_primParam[index].p_texture->vertex0.x, p_env->p_primParam[index].p_texture->vertex0.y, p_env->p_primParam[index].p_texture->dimensions.w, p_env->p_primParam[index].p_texture->dimensions.h);
+	
+	if(swapRedBlue(p_env->p_primParam[index].p_texture->p_data, p_env->p_primParam[index].p_texture->size) < 0)
+	{
+	  printf("\nSWAP FAILED\n");
+	  continue;
+	}
+	
+	for(index2 = 0; index2 < p_env->p_primParam[index].p_texture->size; index2++)
+	{
+	  printf("\n%d\n", p_env->p_primParam[index].p_texture->p_data[index2]);
+	}
+	
+	p_env->p_primParam[index].p_texture->id = LoadTPage((u_long *)p_env->p_primParam[index].p_texture->p_data, 2, 0, p_env->p_primParam[index].p_texture->vertex0.x, p_env->p_primParam[index].p_texture->vertex0.y, p_env->p_primParam[index].p_texture->dimensions.w, p_env->p_primParam[index].p_texture->dimensions.h);
+	
+	printf("\nTPAGE ID: %d\n", p_env->p_primParam[index].p_texture->id);
+      }
+    }
+  }
+  
+  for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
+  {
+    for(index = 0; index < p_env->otSize; index++)
+    {
+      if(p_env->p_primParam[index].p_texture == NULL)
+      {
+	continue;
+      }
+      
+      p_env->buffer[buffIndex].p_primitive[index].type = p_env->p_primParam[index].type;
+      
+      switch(p_env->buffer[buffIndex].p_primitive[index].type)
+      {
+	case TYPE_FT4:
+	  ((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->tpage = p_env->p_primParam[index].p_texture->id;
+	  break;
+	case TYPE_GT4:
+	  ((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->tpage = p_env->p_primParam[index].p_texture->id;
+	  break;
+	case TYPE_SPRITE:
+	  SetDrawTPage((DR_TPAGE *)(&p_env->p_primParam[index].p_texture->tpage), 1, 0, p_env->p_primParam[index].p_texture->id);
+	  AddPrim(&(p_env->buffer[buffIndex].p_ot[index]), &p_env->p_primParam[index].p_texture->tpage);
+	  break;
+	default:
+	  printf("\nNon Texture Type at index %d\n", index);
+	  break;
+      }
+    }
+  }
+}
+
+void *loadFileFromCD(char *p_path, int *op_len)
 {
   int sizeSectors = 0;
   int numRemain = 0;
@@ -214,7 +300,12 @@ void *loadFileFromCD(char *p_path)
     }
   }
   while(numRemain);
-
+  
+  if(op_len != NULL)
+  {
+    *op_len = fileInfo.size;
+  }
+  
   printf("\nREAD COMPLETE\n");
   
   return file;
@@ -225,7 +316,7 @@ struct s_primParam *getObjects(char *fileName)
   char *p_buff = NULL;
   struct s_primParam *p_primParam;
   
-  p_buff = (char *)loadFileFromCD(fileName);
+  p_buff = (char *)loadFileFromCD(fileName, NULL);
   
   if(p_buff == NULL)
   {
@@ -239,7 +330,7 @@ struct s_primParam *getObjects(char *fileName)
   resetGetPrimData();
   
   free(p_buff);
-  
+ 
   return p_primParam;
 }
 

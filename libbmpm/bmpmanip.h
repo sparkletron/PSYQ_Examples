@@ -14,10 +14,10 @@
 #include <stdint.h>
 
 //sets semi trans bit in image data to one, use on any data, will detect bitmap and go to offset, or just start at beginning for raw data
-int setSemiTrans(uint8_t *op_data, uint8_t red, uint8_t green, uint8_t blue, int len);
+int addSemiTrans(uint8_t *op_data, uint8_t red, uint8_t green, uint8_t blue, int len);
 
 //clears SemiTransBit, use on any data
-int clearSemiTrans(uint8_t *op_data, int len);
+int removeSemiTrans(uint8_t *op_data, int len);
 
 //convert bitmap data to RAW, if no header detected, or incorrect header, this does nothing.
 //returns new size of data, 0 for no change, -1 for non-valid bitmap or realloc issue

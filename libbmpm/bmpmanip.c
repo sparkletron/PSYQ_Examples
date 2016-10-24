@@ -22,7 +22,7 @@ void setTransBit(uint8_t *op_data, uint8_t red, uint8_t green, uint8_t blue, uin
 
 //sets semi trans bit in image data to one, use on any data, will detect bitmap and go to offset, or just start at beginning for raw data
 //0 or greater for success, -1 not a valid 16 bit file
-int setSemiTrans(uint8_t *op_data, uint8_t red, uint8_t green, uint8_t blue, int len)
+int addSemiTrans(uint8_t *op_data, uint8_t red, uint8_t green, uint8_t blue, int len)
 {
   int returnValue = 0;
   
@@ -42,7 +42,7 @@ int setSemiTrans(uint8_t *op_data, uint8_t red, uint8_t green, uint8_t blue, int
 }
 
 //clears SemiTransBit, use on any data
-int clearSemiTrans(uint8_t *op_data, int len)
+int removeSemiTrans(uint8_t *op_data, int len)
 {
   int returnValue = 0;
   

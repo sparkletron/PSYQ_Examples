@@ -110,14 +110,22 @@ struct s_color
   uint8_t b;
 };
 
+struct s_tpage
+{
+  unsigned long *tag;
+  unsigned long code[2];
+};
+
 struct s_texture
 {
+  unsigned short id;
   uint32_t size;
   
   char file[256];
   
   struct s_vertex vertex0;
   struct s_dimensions dimensions;
+  struct s_tpage tpage;
   
   uint8_t *p_data;
 };
