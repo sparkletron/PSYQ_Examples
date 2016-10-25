@@ -135,9 +135,9 @@ void setupSound(struct s_environment *p_env)
   SpuSetTransferMode(SPU_TRANSFER_BY_DMA);
 }
 
-void playCDtracks(int *p_tracks)
+void playCDtracks(int *p_tracks, int trackNum)
 {
-  if(DsPlay(2, p_tracks, 0) < 0)
+  if(DsPlay(2, p_tracks, trackNum) < 0)
   {
     printf("\nNo CD Track Playing\n");
   }
@@ -229,6 +229,7 @@ void populateTextures(struct s_environment *p_env)
 	    ((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->tpage = p_env->p_primParam[index]->p_texture->id;
 	    break;
 	  case TYPE_SPRITE:
+	    printf("\nTYPE_SPRITE\n");
 	    SetDrawTPage((DR_TPAGE *)(&p_env->p_primParam[index]->p_texture->tpage), 1, 0, p_env->p_primParam[index]->p_texture->id);
 	    AddPrim(&(p_env->buffer[buffIndex].p_ot[index]), &p_env->p_primParam[index]->p_texture->tpage);
 	    break;

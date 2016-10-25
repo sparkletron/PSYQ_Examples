@@ -7,20 +7,14 @@
  * 
 */
 
-#include "engine.h"
-#include "SPRITE.h"
-#include "sand.h"
-
-extern unsigned char e_image[];
-extern unsigned char e_sand[];
+#include <engine.h>
 
 void createGameObjects(struct s_environment *p_env);
 void animate(struct s_environment *p_env);
 
 int main() 
 {
-  char *p_title = "Sprite Example\nLoaded From Header\n";
-  u_long *p_address[] = {(u_long *)e_sand, (u_long *)e_image};
+  char *p_title = "Sprite Example\nLoaded From CD\nBITMAP to PSX DATA CONV";
   struct s_environment environment;
 
   initEnv(&environment, 2); // setup the graphics (seen below)
@@ -33,7 +27,7 @@ int main()
   
   populateOT(&environment);
   
-  populateTPage(&environment, p_address, environment.otSize);
+  populateTextures(&environment);
 
   while (1) // draw and display forever
   {
@@ -47,41 +41,32 @@ int main()
 
 void createGameObjects(struct s_environment *p_env)
 {
+  int index;
   int buffIndex;
   
-  p_env->p_primParam[0].vertex0.x = 0;
-  p_env->p_primParam[0].vertex0.y = 0;
-  p_env->p_primParam[0].textureVertex0.x = 0;
-  p_env->p_primParam[0].textureVertex0.y = 0;
-  p_env->p_primParam[0].primSize.w = 320;
-  p_env->p_primParam[0].primSize.h = 240;
-  p_env->p_primParam[0].textureSize.w = 160;
-  p_env->p_primParam[0].textureSize.h = 120;
-  p_env->p_primParam[0].color0.r = 127;
-  p_env->p_primParam[0].color0.g = 127;
-  p_env->p_primParam[0].color0.b = 127;
-  p_env->p_primParam[0].type = TYPE_FT4;
+  p_env->p_primParam[0] = getObjects("\\SAND.XML;1");
+  p_env->p_primParam[1] = getObjects("\\SPRITE.XML;1");
   
-  for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
+  for(index = 0; index < p_env->otSize; index++)
   {
-    p_env->buffer[buffIndex].p_primitive[0].data = calloc(1, sizeof(POLY_FT4));
-  }
-  
-  p_env->p_primParam[1].vertex0.x = SCREEN_WIDTH / 2 - 32;
-  p_env->p_primParam[1].vertex0.y = SCREEN_HEIGHT / 2 - 32;;
-  p_env->p_primParam[1].textureVertex0.x = 0;
-  p_env->p_primParam[1].textureVertex0.y = 0;
-  p_env->p_primParam[1].primSize.w = 64;
-  p_env->p_primParam[1].primSize.h = 64;
-  p_env->p_primParam[1].color0.r = 127;
-  p_env->p_primParam[1].color0.g = 127;
-  p_env->p_primParam[1].color0.b = 127;
-  p_env->p_primParam[1].type = TYPE_SPRITE;
-  
-  for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
-  {
-    p_env->buffer[buffIndex].p_primitive[1].data = calloc(1, sizeof(SPRT));
-  }
+    if(p_env->p_primParam[index] != NULL)
+    {
+      for(buffIndex = 0; buffIndex < DOUBLE_BUF; buffIndex++)
+      {
+	switch(p_env->p_primParam[index]->type)
+	{
+	  case TYPE_FT4:
+	    p_env->buffer[buffIndex].p_primitive[index].data = calloc(1, sizeof(POLY_FT4));
+	    break;
+	  case TYPE_SPRITE:
+	    p_env->buffer[buffIndex].p_primitive[index].data = calloc(1, sizeof(SPRT));
+	    break;
+	  default:
+	    break;
+	}
+      }
+    }
+  } 
 }
 
 void animate(struct s_environment *p_env)
@@ -93,15 +78,33 @@ void animate(struct s_environment *p_env)
     prevTime--;
   }
   
-  if(prevTime == 0 || ((VSync(-1) - prevTime) >= 4))
+  if(prevTime == 0 || ((VSync(-1) - prevTime) >= 8))
   {
     prevTime = VSync(-1);
     
-    p_env->p_primParam[1].textureVertex0.x = (p_env->p_primParam[1].textureVertex0.x + 64) % 256;
-    
-    if(p_env->p_primParam[1].textureVertex0.x == 0)
+    if(p_env->gamePad.one.third.bit.up == 0)
     {
-      p_env->p_primParam[1].textureVertex0.y = (p_env->p_primParam[1].textureVertex0.y + 64) % 256;
+      p_env->p_primParam[1]->p_texture->vertex0.y = 192;
+      p_env->p_primParam[1]->p_texture->vertex0.x = (p_env->p_primParam[1]->p_texture->vertex0.x + 64) % 256;
+    }
+    else if(p_env->gamePad.one.third.bit.down == 0)
+    {
+      p_env->p_primParam[1]->p_texture->vertex0.y = 0;
+      p_env->p_primParam[1]->p_texture->vertex0.x = (p_env->p_primParam[1]->p_texture->vertex0.x + 64) % 256;
+    }
+    else if(p_env->gamePad.one.third.bit.right == 0)
+    {
+      p_env->p_primParam[1]->p_texture->vertex0.y = 128;
+      p_env->p_primParam[1]->p_texture->vertex0.x = (p_env->p_primParam[1]->p_texture->vertex0.x + 64) % 256;
+    }
+    else if(p_env->gamePad.one.third.bit.left == 0)
+    {     
+      p_env->p_primParam[1]->p_texture->vertex0.y = 64;
+      p_env->p_primParam[1]->p_texture->vertex0.x = (p_env->p_primParam[1]->p_texture->vertex0.x + 64) % 256;
+    }
+    else
+    {
+      p_env->p_primParam[1]->p_texture->vertex0.x = 0;
     }
   }
 }

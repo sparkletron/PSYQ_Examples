@@ -94,8 +94,10 @@
 			
 		</directory_tree>
 		
-	</track>
+	</track>silence.wav
         
+	<track type="audio" source="AUDIO/silence.wav"/>
         <track type="audio" source="AUDIO/herb.wav"/>
+	<track type="audio" source="AUDIO/lady.wav"/>
 	
 </iso_project>

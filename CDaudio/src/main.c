@@ -13,11 +13,13 @@ void createGameObjects(struct s_environment *p_env);
 
 int main() 
 {
-  int tracks[] = {1, 0};
+  int tracks[] = {3, 4, 0};
   char *p_title = "Texture Example\nLoaded From CD\nBITMAP to PSX DATA CONV\nAUDIO TRACK\n";
   struct s_environment environment;
 
   initEnv(&environment, 1); // setup the graphics (seen below)
+  
+  setupSound(&environment);
   
   environment.envMessage.p_data = (int *)&environment.gamePad.one;
   environment.envMessage.p_message = NULL;
@@ -29,7 +31,7 @@ int main()
   
   populateOT(&environment);
   
-  playCDtracks(tracks);
+  playCDtracks(tracks, 0);
 
   while (1) // draw and display forever
   {

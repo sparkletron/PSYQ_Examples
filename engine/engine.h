@@ -32,7 +32,7 @@ void initEnv(struct s_environment *p_env, int numPrim);
 //setup sound for cd
 void setupSound(struct s_environment *p_env);
 //play cd tracks (loops all tracks)
-void playCDtracks(int *p_tracks);
+void playCDtracks(int *p_tracks, int trackNum);
 //update display
 void display(struct s_environment *p_env);
 //populate textures
