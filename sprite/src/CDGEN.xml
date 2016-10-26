@@ -86,8 +86,10 @@
 			<file name="MAIN.exe"	type="data"	source="spriteTest.exe"/>
 			<file name="SAND.XML" type="data" source="XML/SAND.XML"/>
 			<file name="SPRITE.XML" type="data" source="XML/SPRITE.XML"/>
+			<file name="ESPRITE.XML" type="data" source="XML/ESPRITE.XML"/>
 			<file name="SAND.BMP" type="data" source="IMG/sand.bmp"/>
 			<file name="SPRITE.BMP" type="data" source="IMG/sprite.bmp"/>
+			<file name="ESPRITE.BMP" type="data" source="IMG/esprite.bmp"/>
 			
 			<!-- <dir>
 					Specifies a directory in the directory tree. <file> and <dir> elements inside the element

@@ -11,13 +11,14 @@
 
 void createGameObjects(struct s_environment *p_env);
 void movSprite(struct s_environment *p_env);
+void movEnemy(struct s_environment *p_env);
 
 int main() 
 {
   char *p_title = "Sprite Example\nLoaded From CD\nBITMAP to PSX DATA CONV";
   struct s_environment environment;
 
-  initEnv(&environment, 2); // setup the graphics (seen below)
+  initEnv(&environment, 3); // setup the graphics (seen below)
   
   environment.envMessage.p_data = (int *)&environment.gamePad.one;
   environment.envMessage.p_message = NULL;
@@ -33,6 +34,8 @@ int main()
   {
     display(&environment);
     movSprite(&environment);
+    movEnemy(&environment);
+    updatePrim(&environment);
   }
 
   return 0;
@@ -45,6 +48,7 @@ void createGameObjects(struct s_environment *p_env)
   
   p_env->p_primParam[0] = getObjects("\\SAND.XML;1");
   p_env->p_primParam[1] = getObjects("\\SPRITE.XML;1");
+  p_env->p_primParam[2] = getObjects("\\ESPRITE.XML;1");
   
   for(index = 0; index < p_env->otSize; index++)
   {
@@ -68,35 +72,29 @@ void createGameObjects(struct s_environment *p_env)
   } 
 }
 
-void animate(struct s_environment *p_env, int yoffset)
+void animate(struct s_environment *p_env, int *op_prevTime, int sprite, int yoffset)
 {
-  static int prevTime = 0;
-  
-  if(p_env->gamePad.one.fourth.bit.triangle == 0)
+  if(*op_prevTime == 0 || ((VSync(-1) - *op_prevTime) >= 8))
   {
-    prevTime--;
-  }
-  
-  if(prevTime == 0 || ((VSync(-1) - prevTime) >= 8))
-  {
-    prevTime = VSync(-1);
+    *op_prevTime = VSync(-1);
     
-    p_env->p_primParam[1]->p_texture->vertex0.y = yoffset;
-    p_env->p_primParam[1]->p_texture->vertex0.x = (p_env->p_primParam[1]->p_texture->vertex0.x + 64) % 256;
+    p_env->p_primParam[sprite]->p_texture->vertex0.y = yoffset;
+    p_env->p_primParam[sprite]->p_texture->vertex0.x = (p_env->p_primParam[sprite]->p_texture->vertex0.x + 64) % 256;
   }
 }
 
 void movSprite(struct s_environment *p_env)
 { 
   static int prevTime = 0;
+  static int prevAnimTime = 0;
   int movAmount = 1;
   
   if(p_env->gamePad.one.fourth.bit.triangle == 0)
   {
     movAmount = 2;
+    prevAnimTime--;
   }
-  
-  
+   
   if(p_env->gamePad.one.fourth.bit.ex == 0)
   {
     if(prevTime == 0 || ((VSync(-1) - prevTime) > 60))
@@ -112,7 +110,7 @@ void movSprite(struct s_environment *p_env)
     if(p_env->p_primParam[1]->vertex0.y > 0)
     {
       p_env->p_primParam[1]->vertex0.y -= movAmount;
-      animate(p_env, 192);
+      animate(p_env, &prevAnimTime, 1, 192);
     }
     else
     {
@@ -124,7 +122,7 @@ void movSprite(struct s_environment *p_env)
     if((p_env->p_primParam[1]->vertex0.x + p_env->p_primParam[1]->dimensions.w) < SCREEN_WIDTH)
     {
       p_env->p_primParam[1]->vertex0.x += movAmount;
-      animate(p_env, 128);
+      animate(p_env, &prevAnimTime, 1, 128);
     }
     else
     {
@@ -136,7 +134,7 @@ void movSprite(struct s_environment *p_env)
     if((p_env->p_primParam[1]->vertex0.y + p_env->p_primParam[1]->dimensions.h) < SCREEN_HEIGHT)
     {
       p_env->p_primParam[1]->vertex0.y += movAmount;
-      animate(p_env, 0);
+      animate(p_env, &prevAnimTime, 1, 0);
     }
     else
     {
@@ -148,7 +146,7 @@ void movSprite(struct s_environment *p_env)
     if(p_env->p_primParam[1]->vertex0.x > 0)
     {
       p_env->p_primParam[1]->vertex0.x -= movAmount;
-      animate(p_env, 64);
+      animate(p_env, &prevAnimTime, 1, 64);
     }
     else
     {
@@ -160,5 +158,68 @@ void movSprite(struct s_environment *p_env)
     p_env->p_primParam[1]->p_texture->vertex0.x = 0;
   }
   
-  updatePrim(p_env);
+}
+
+void movEnemy(struct s_environment *p_env)
+{ 
+  static int prevAnimTime = 0;
+  
+  if((abs(p_env->p_primParam[1]->vertex0.y - p_env->p_primParam[0]->vertex0.y) + 25 < 50) && (abs(p_env->p_primParam[1]->vertex0.x - p_env->p_primParam[0]->vertex0.x) + 25 < 50))
+  {
+    p_env->p_primParam[2]->p_texture->vertex0.x = 0;
+    return;
+  }
+
+  if(p_env->p_primParam[1]->vertex0.y > p_env->p_primParam[2]->vertex0.y)
+  {
+    if((p_env->p_primParam[2]->vertex0.y + p_env->p_primParam[2]->dimensions.h) < SCREEN_HEIGHT)
+    {
+      p_env->p_primParam[2]->vertex0.y += 1;
+      animate(p_env, &prevAnimTime, 2, 0);
+    }
+    else
+    {
+      p_env->p_primParam[2]->p_texture->vertex0.x = 0;
+    }
+  }
+  else if(p_env->p_primParam[1]->vertex0.y < p_env->p_primParam[2]->vertex0.y)
+  {
+    if(p_env->p_primParam[2]->vertex0.y > 0)
+    {
+      p_env->p_primParam[2]->vertex0.y -= 1;
+      animate(p_env, &prevAnimTime, 2, 192);
+    }
+    else
+    {
+      p_env->p_primParam[2]->p_texture->vertex0.x = 0;
+    }
+  } 
+  else if(p_env->p_primParam[1]->vertex0.x > p_env->p_primParam[2]->vertex0.x)
+  {
+    if((p_env->p_primParam[2]->vertex0.x + p_env->p_primParam[2]->dimensions.w) < SCREEN_WIDTH)
+    {
+      p_env->p_primParam[2]->vertex0.x += 1;
+      animate(p_env, &prevAnimTime, 2, 128);
+    }
+    else
+    {
+      p_env->p_primParam[2]->p_texture->vertex0.x = 0;
+    }
+  }
+  else if(p_env->p_primParam[1]->vertex0.x < p_env->p_primParam[2]->vertex0.x)
+  {
+    if(p_env->p_primParam[2]->vertex0.x > 0)
+    {
+      p_env->p_primParam[2]->vertex0.x -= 1;
+      animate(p_env, &prevAnimTime, 2, 64);
+    }
+    else
+    {
+      p_env->p_primParam[2]->p_texture->vertex0.x = 0;
+    }
+  }
+  else
+  {
+    p_env->p_primParam[2]->p_texture->vertex0.x = 0;
+  }
 }
