@@ -10,7 +10,7 @@
 #include <engine.h>
 
 void createGameObjects(struct s_environment *p_env);
-void animate(struct s_environment *p_env);
+void movSprite(struct s_environment *p_env);
 
 int main() 
 {
@@ -32,8 +32,7 @@ int main()
   while (1) // draw and display forever
   {
     display(&environment);
-    animate(&environment);
-    movPrim(&environment);
+    movSprite(&environment);
   }
 
   return 0;
@@ -69,7 +68,7 @@ void createGameObjects(struct s_environment *p_env)
   } 
 }
 
-void animate(struct s_environment *p_env)
+void animate(struct s_environment *p_env, int yoffset)
 {
   static int prevTime = 0;
   
@@ -82,29 +81,84 @@ void animate(struct s_environment *p_env)
   {
     prevTime = VSync(-1);
     
-    if(p_env->gamePad.one.third.bit.up == 0)
+    p_env->p_primParam[1]->p_texture->vertex0.y = yoffset;
+    p_env->p_primParam[1]->p_texture->vertex0.x = (p_env->p_primParam[1]->p_texture->vertex0.x + 64) % 256;
+  }
+}
+
+void movSprite(struct s_environment *p_env)
+{ 
+  static int prevTime = 0;
+  int movAmount = 1;
+  
+  if(p_env->gamePad.one.fourth.bit.triangle == 0)
+  {
+    movAmount = 2;
+  }
+  
+  
+  if(p_env->gamePad.one.fourth.bit.ex == 0)
+  {
+    if(prevTime == 0 || ((VSync(-1) - prevTime) > 60))
     {
-      p_env->p_primParam[1]->p_texture->vertex0.y = 192;
-      p_env->p_primParam[1]->p_texture->vertex0.x = (p_env->p_primParam[1]->p_texture->vertex0.x + 64) % 256;
+      p_env->p_primParam[1]->color0.r = rand() % 256;
+      p_env->p_primParam[1]->color0.g = rand() % 256;
+      p_env->p_primParam[1]->color0.b = rand() % 256;
+      prevTime = VSync(-1);
     }
-    else if(p_env->gamePad.one.third.bit.down == 0)
+  }
+  else if(p_env->gamePad.one.third.bit.up == 0)
+  {
+    if(p_env->p_primParam[1]->vertex0.y > 0)
     {
-      p_env->p_primParam[1]->p_texture->vertex0.y = 0;
-      p_env->p_primParam[1]->p_texture->vertex0.x = (p_env->p_primParam[1]->p_texture->vertex0.x + 64) % 256;
-    }
-    else if(p_env->gamePad.one.third.bit.right == 0)
-    {
-      p_env->p_primParam[1]->p_texture->vertex0.y = 128;
-      p_env->p_primParam[1]->p_texture->vertex0.x = (p_env->p_primParam[1]->p_texture->vertex0.x + 64) % 256;
-    }
-    else if(p_env->gamePad.one.third.bit.left == 0)
-    {     
-      p_env->p_primParam[1]->p_texture->vertex0.y = 64;
-      p_env->p_primParam[1]->p_texture->vertex0.x = (p_env->p_primParam[1]->p_texture->vertex0.x + 64) % 256;
+      p_env->p_primParam[1]->vertex0.y -= movAmount;
+      animate(p_env, 192);
     }
     else
     {
       p_env->p_primParam[1]->p_texture->vertex0.x = 0;
     }
   }
+  else if(p_env->gamePad.one.third.bit.right == 0)
+  {
+    if((p_env->p_primParam[1]->vertex0.x + p_env->p_primParam[1]->dimensions.w) < SCREEN_WIDTH)
+    {
+      p_env->p_primParam[1]->vertex0.x += movAmount;
+      animate(p_env, 128);
+    }
+    else
+    {
+      p_env->p_primParam[1]->p_texture->vertex0.x = 0;
+    }
+  }
+  else if(p_env->gamePad.one.third.bit.down == 0)
+  {
+    if((p_env->p_primParam[1]->vertex0.y + p_env->p_primParam[1]->dimensions.h) < SCREEN_HEIGHT)
+    {
+      p_env->p_primParam[1]->vertex0.y += movAmount;
+      animate(p_env, 0);
+    }
+    else
+    {
+      p_env->p_primParam[1]->p_texture->vertex0.x = 0;
+    }
+  }
+  else if(p_env->gamePad.one.third.bit.left == 0)
+  {
+    if(p_env->p_primParam[1]->vertex0.x > 0)
+    {
+      p_env->p_primParam[1]->vertex0.x -= movAmount;
+      animate(p_env, 64);
+    }
+    else
+    {
+      p_env->p_primParam[1]->p_texture->vertex0.x = 0;
+    }
+  }
+  else
+  {
+    p_env->p_primParam[1]->p_texture->vertex0.x = 0;
+  }
+  
+  updatePrim(p_env);
 }

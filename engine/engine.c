@@ -204,8 +204,11 @@ void populateTextures(struct s_environment *p_env)
 	}
 	
 	p_env->p_primParam[index]->p_texture->id = LoadTPage((u_long *)p_env->p_primParam[index]->p_texture->p_data, 2, 0, p_env->p_primParam[index]->p_texture->vramVertex.x, p_env->p_primParam[index]->p_texture->vramVertex.y, p_env->p_primParam[index]->p_texture->dimensions.w, p_env->p_primParam[index]->p_texture->dimensions.h);
+
+	while(DrawSync(1));
 	
-	printf("\nTPAGE ID: %d %d %d %d %d\n", p_env->p_primParam[index]->p_texture->id, p_env->p_primParam[index]->p_texture->vertex0.x, p_env->p_primParam[index]->p_texture->vertex0.y, p_env->p_primParam[index]->p_texture->dimensions.w, p_env->p_primParam[index]->p_texture->dimensions.h);
+	free(p_env->p_primParam[index]->p_texture->p_data);
+	p_env->p_primParam[index]->p_texture->p_data = NULL;
       }
     }
   }
