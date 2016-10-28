@@ -21,6 +21,7 @@ Toolkit is PSYQ, available at [psxdev.net](http://www.psxdev.net/downloads.html)
 * psxBuildTips.md  = Build Tips
 * psxXML.md	   = YXML/LIBGETPRIM for the playstation
 * psxBitmapManip   = convert bitmaps to raw data and convert it from ARGB to ABGR or back again.
+* psxEvent.md	   = usage of event handler in psyq
 
 #### Requirements
 
