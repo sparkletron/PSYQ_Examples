@@ -100,8 +100,8 @@ void initEnv(struct s_environment *p_env, int numPrim)
   
   p_env->p_currBuffer = p_env->buffer;
   
-  FntLoad(960, 256); // load the font from the BIOS into VRAM/SGRAM
-  SetDumpFnt(FntOpen(5, 20, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 512)); // screen X,Y | max text length X,Y | autmatic background clear 0,1 | max characters
+  FntLoad(960, 256);
+  SetDumpFnt(FntOpen(5, 20, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 512));
   
   //CD init 
   DsInit();

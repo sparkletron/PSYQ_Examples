@@ -94,6 +94,7 @@ Basic Graphics For the PlayStation, requires more setup, but its ordering tables
 
 #### Notes
 * Display and Drawing environments point to where we are performing operations in memory. When we switch, we are chaning locations, so now the display buffer will point to where the draw buffer was. This means that one set has a set of corridinates, and the other set are set to there opposities. See "Setup Graphics and double buffer" for an example.
+* isbg, in the draw structure turns draw screen clearing off or on. 0 its off, 1 its on.
 
 ### Ordering Tables and Z Sorting
 
