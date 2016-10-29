@@ -34,7 +34,6 @@ PlayStation (KUBUNTU 14.04)
 
 	Psy-Q SDK from psxdev.net
 	WINE
-	dosemu
 	BUILD_ESSENTIALS
 
 ### Library Install Directions
@@ -43,21 +42,27 @@ PlayStation (KUBUNTU 14.04)
    1. [PlayStation Dev Kit ... psxdev.net](http://www.psxdev.net/downloads.html)
 
    2. [Windows Reg File for PlayStation Dev Kit ... psxdev.net/forum](http://www.psxdev.net/forum/viewtopic.php?f=49&t=206)
+   
+   3. [PSYLIB.EXE windows version ... psxdev.net/forum](http://www.psxdev.net/forum/viewtopic.php?f=69&t=1137)
+   
+   4. [CPE2X.EXE windows version ... psxdev.net/forum](http://www.psxdev.net/forum/viewtopic.php?f=53&t=225)
+   
+   5. [mkpsxiso by Lameguy64 ... github.com](https://github.com/Lameguy64/mkpsxiso)
 
 Linux using WINE
 
         1. Install WINE
-        2. Install dosemu 
-        3. Initialize WINE (winecfg works well for this)
-        4. Initialize dosemu (just run dosemu)
-        5. Copy psyq directory to wine drive_c directory
-        6. Use the command "wine regedit" to import reg file
-        7. Edit dosemu's autoexec.bat and alter the file to mount your linux drive as root for drive D:.
-           Then add psyq folder in wine as a path.
-        8. Install pcsx
-        9. Execute pcsx
-        10. Add a bios file to pcsx
-        11. Tell pcsx to use the file
+        2. Initialize WINE (winecfg works well for this)
+        3. Copy psyq directory to wine drive_c directory
+        4. Use the command "wine regedit" to import reg file
+	5. Copy psylib into psyq/bin (overwrite the old one or rename the old one)
+	6. Copy CPE2X.EXE into pysq/bin, rename it to CPE2XWIN.EXE
+	7. Build mkpsxiso using cmake/make (follow the readme in the repo)
+	9. Copy mkpsxiso into psyq/bin
+        10. Install pcsx
+	11. Execute pcsx
+        12. Add a bios file to pcsx
+        13. Tell pcsx to use the file
 
 ### Basic Tool Setup
 
@@ -70,32 +75,6 @@ Linux using WINE
 export PATH=/home/${YOUR_USERNAME}/.wine/drive_c/psyq/bin:$PATH
 export PATH=/home/${YOUR_USERNAME}/.wine/drive_c/psyq/cdemu/BIN/:$PATH
 export PATH=/home/${YOUR_USERNAME}/.wine/drive_c/psyq/bin/TIMTOOL:$PATH
-```
-
-#### DOSEMU Autoexec.bat
-```
-@echo off
-rem autoexec.bat for DOSEMU + FreeDOS
-path z:\bin;z:\gnu;z:\dosemu;D:\home\${YOUR_USERNAME}\.wine\drive_c\psyq\bin;D:\home\${YOUR_USERNAME}\.wine\drive_c\psyq\cdemu$
-set HELPPATH=z:\help
-set TEMP=c:\tmp
-blaster
-prompt $P$G
-unix -s DOSDRIVE_D
-if "%DOSDRIVE_D%" == "" goto nodrived
-lredir del d: > nul
-lredir d: linux\fs/
-:nodrived
-rem uncomment to load another bitmap font
-rem loadhi display con=(vga,437,2)
-rem mode con codepage prepare=((850) z:\cpi\ega.cpx)
-rem mode con codepage select 850
-rem chcp 850
-lredir e: linux\fs/cdrom c
-unix -s DOSEMU_VERSION
-echo "Welcome to dosemu %DOSEMU_VERSION%!"
-unix -e
-
 ```
 
 ### Notes
