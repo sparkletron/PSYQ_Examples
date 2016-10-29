@@ -52,18 +52,18 @@ PlayStation (KUBUNTU 14.04)
 
 Linux using WINE
 
-        1. Install WINE
-        2. Initialize WINE (winecfg works well for this)
-        3. Copy psyq directory to wine drive_c directory
-        4. Use the command "wine regedit" to import reg file
+	1. Install WINE
+	2. Initialize WINE (winecfg works well for this)
+	3. Copy psyq directory to wine drive_c directory
+	4. Use the command "wine regedit" to import reg file
 	5. Copy psylib into psyq/bin (overwrite the old one or rename the old one)
 	6. Copy CPE2X.EXE into pysq/bin, rename it to CPE2XWIN.EXE
 	7. Build mkpsxiso using cmake/make (follow the readme in the repo)
 	9. Copy mkpsxiso into psyq/bin
-        10. Install pcsx
+	10. Install pcsx
 	11. Execute pcsx
-        12. Add a bios file to pcsx
-        13. Tell pcsx to use the file
+	12. Add a bios file to pcsx
+	13. Tell pcsx to use the file
 
 ### Basic Tool Setup
 
