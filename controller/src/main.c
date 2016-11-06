@@ -46,6 +46,21 @@ void createGameObjects(struct s_environment *p_env)
 
     if(p_env->p_primParam[index] != NULL)
     {
+      printf("\n CREATE %d\n", index);
+      
+      switch(index)
+      {
+	case 0:
+	  p_env->p_primParam[index]->vertex0.vx = 50;
+	  p_env->p_primParam[index]->vertex0.vy = 50;
+	  break;
+	case 1:
+	  p_env->p_primParam[index]->vertex0.vx = 100;
+	  p_env->p_primParam[index]->vertex0.vy = 100;
+	  break;
+	default:
+	  break;
+      }
       for(buffIndex = 0; buffIndex < DOUBLE_BUF; buffIndex++)
       {
 	p_env->buffer[buffIndex].p_primitive[index].data = calloc(1, sizeof(POLY_F4));

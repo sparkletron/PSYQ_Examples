@@ -154,6 +154,8 @@ struct s_primParam
   struct s_lvertex transCoor;
   struct s_svertex rotCoor;
   
+  struct s_matrix matrix;
+  
   struct s_svertex vertex0;
   struct s_svertex vertex1;
   struct s_svertex vertex2;
@@ -176,10 +178,6 @@ struct s_environment
   int otSize;
   int bufSize;
   int prevTime;
-  
-  struct s_matrix worldMatrix;
-  
-  struct s_matrix screenMatrix;
   
   struct s_primParam **p_primParam;
   

@@ -116,9 +116,9 @@ void initEnv(struct s_environment *p_env, int numPrim)
   
   SetGraphDebug(0); //0 = no checks, 1 = checks, 2 = dump of registered and drawn
   
-  SetGeomOffset(0, 0);
+  //SetGeomOffset(0, 0); set by SetDefDispEnv()
   
-  SetGeomScreen(0);
+  SetGeomScreen(1024); // this sets distance h (eye to screen)
   
   //CD init 
   DsInit();
@@ -376,19 +376,26 @@ void populateOT(struct s_environment *p_env)
 	  SetPolyF4((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data);
 	  setXYWH((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->vertex0.vx, p_env->p_primParam[index]->vertex0.vy, p_env->p_primParam[index]->dimensions.w, p_env->p_primParam[index]->dimensions.h);
 	  
-// 	  p_env->p_primParam[index]->vertex0.vz = 1;
+	  p_env->p_primParam[index]->vertex0.vz = 512;
 	  
 	  p_env->p_primParam[index]->vertex1.vx = ((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data)->x1;
 	  p_env->p_primParam[index]->vertex1.vy = ((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data)->y1;
-// 	  p_env->p_primParam[index]->vertex1.vz = 1;
+	  p_env->p_primParam[index]->vertex1.vz = 512;
 	  
 	  p_env->p_primParam[index]->vertex2.vx = ((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data)->x2;
 	  p_env->p_primParam[index]->vertex2.vy = ((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data)->y2;
-// 	  p_env->p_primParam[index]->vertex2.vz = 1;
+	  p_env->p_primParam[index]->vertex2.vz = 512;
 	  
 	  p_env->p_primParam[index]->vertex3.vx = ((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data)->x3;
 	  p_env->p_primParam[index]->vertex3.vy = ((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data)->y3;
-// 	  p_env->p_primParam[index]->vertex3.vz = 1;
+	  p_env->p_primParam[index]->vertex3.vz = 512;
+	  
+	  p_env->p_primParam[index]->transCoor.vz = 512;
+	  
+	  RotMatrix((SVECTOR *)&p_env->p_primParam[index]->rotCoor, (MATRIX *)&p_env->p_primParam[index]->matrix);
+	  TransMatrix((MATRIX *)&p_env->p_primParam[index]->matrix, (VECTOR *)&p_env->p_primParam[index]->transCoor);
+	  SetRotMatrix((MATRIX *)&p_env->p_primParam[index]->matrix);
+	  SetTransMatrix((MATRIX *)&p_env->p_primParam[index]->matrix);
 	  
 	  setRGB0((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
 	  break;
@@ -456,19 +463,23 @@ void updatePrim(struct s_environment *p_env)
 	setRGB0((TILE *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
 	break;
       case TYPE_F4:
-// 	RotTransPers4((SVECTOR *)&p_env->p_primParam[index]->vertex0, 
-// 		      (SVECTOR *)&p_env->p_primParam[index]->vertex1, 
-// 		      (SVECTOR *)&p_env->p_primParam[index]->vertex2, 
-// 		      (SVECTOR *)&p_env->p_primParam[index]->vertex3,
-// 		      (long *)&sxy[0],
-// 		      (long *)&sxy[2],
-// 		      (long *)&sxy[4],
-// 		      (long *)&sxy[6],
-// 		      &depthCue, &flag);
-	RotTrans((SVECTOR *)&p_env->p_primParam[index]->vertex0, &v[0], &flag);
+	SetRotMatrix((MATRIX *)&p_env->p_primParam[index]->matrix);
+	SetTransMatrix((MATRIX *)&p_env->p_primParam[index]->matrix);
+	
+	RotTransPers4((SVECTOR *)&p_env->p_primParam[index]->vertex0, 
+		      (SVECTOR *)&p_env->p_primParam[index]->vertex1, 
+		      (SVECTOR *)&p_env->p_primParam[index]->vertex2, 
+		      (SVECTOR *)&p_env->p_primParam[index]->vertex3,
+		      (long *)&(((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x0),
+		      (long *)&(((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x1),
+		      (long *)&(((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x2),
+		      (long *)&(((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x3),
+		      &depthCue, &flag);
+/*	RotTrans((SVECTOR *)&p_env->p_primParam[index]->vertex0, &v[0], &flag);
 	RotTrans((SVECTOR *)&p_env->p_primParam[index]->vertex1, &v[1], &flag);
 	RotTrans((SVECTOR *)&p_env->p_primParam[index]->vertex2, &v[2], &flag);
-	RotTrans((SVECTOR *)&p_env->p_primParam[index]->vertex3, &v[3], &flag);	
+	RotTrans((SVECTOR *)&p_env->p_primParam[index]->vertex3, &v[3], &flag);*/	
+// 	printf("\ndepthCue: %X Flag: %X", depthCue, flag);
 // 	printf("\nSVECTOR: %d %d %d", ((SVECTOR *)&p_env->p_primParam[index]->vertex0)->vx, ((SVECTOR *)&p_env->p_primParam[index]->vertex0)->vy, ((SVECTOR *)&p_env->p_primParam[index]->vertex0)->vz);
 // 	printf("\nSVECTOR: %d %d %d", ((SVECTOR *)&p_env->p_primParam[index]->vertex1)->vx, ((SVECTOR *)&p_env->p_primParam[index]->vertex1)->vy, ((SVECTOR *)&p_env->p_primParam[index]->vertex1)->vz);
 // 	printf("\nSVECTOR: %d %d %d", ((SVECTOR *)&p_env->p_primParam[index]->vertex2)->vx, ((SVECTOR *)&p_env->p_primParam[index]->vertex2)->vy, ((SVECTOR *)&p_env->p_primParam[index]->vertex2)->vz);
@@ -478,17 +489,17 @@ void updatePrim(struct s_environment *p_env)
 // 	printf("\nXY10: %d %d %d\n", v[1].vx, v[1].vy, v[1].vz);
 // 	printf("\nXY20: %d %d %d\n", v[2].vx, v[2].vy, v[2].vz);
 // 	printf("\nXY30: %d %d %d\n", v[3].vx, v[3].vy, v[3].vz);
-	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x0 = v[0].vx;
-	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->y0 = v[0].vy;
-	
-	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x1 = v[1].vx;
-	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->y1 = v[1].vy;
-	
-	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x2 = v[2].vx;
-	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->y2 = v[2].vy;
-	
-	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x3 = v[3].vx;
-	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->y3 = v[3].vy;
+// 	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x0 = v[0].vx;
+// 	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->y0 = v[0].vy;
+// 	
+// 	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x1 = v[1].vx;
+// 	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->y1 = v[1].vy;
+// 	
+// 	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x2 = v[2].vx;
+// 	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->y2 = v[2].vy;
+// 	
+// 	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x3 = v[3].vx;
+// 	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->y3 = v[3].vy;
 	
 	setRGB0((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
 	break;
@@ -583,6 +594,15 @@ void movPrim(struct s_environment *p_env)
     }
   }
   
+  if(p_env->gamePad.one.fourth.bit.square == 0)
+  {
+    if(prevTime == 0 || ((VSync(-1) - prevTime) > 5))
+    {
+      p_env->p_primParam[p_env->primCur]->transCoor.vz += 32;
+      prevTime = VSync(-1);
+    }
+  }
+  
   if(p_env->gamePad.one.third.bit.up == 0)
   {
     if(p_env->p_primParam[p_env->primCur]->transCoor.vy > 0)
@@ -615,13 +635,10 @@ void movPrim(struct s_environment *p_env)
     }
   }
   
-  RotMatrix((SVECTOR *)&p_env->p_primParam[p_env->primCur]->rotCoor, (MATRIX *)&p_env->screenMatrix);
-  TransMatrix((MATRIX *)&p_env->screenMatrix, (VECTOR *)&p_env->p_primParam[p_env->primCur]->transCoor);
+  RotMatrix((SVECTOR *)&p_env->p_primParam[p_env->primCur]->rotCoor, (MATRIX *)&p_env->p_primParam[p_env->primCur]->matrix);
+  TransMatrix((MATRIX *)&p_env->p_primParam[p_env->primCur]->matrix, (VECTOR *)&p_env->p_primParam[p_env->primCur]->transCoor);
   
-  SetRotMatrix((MATRIX *)&p_env->screenMatrix);
-  SetTransMatrix((MATRIX *)&p_env->screenMatrix);
-  
-  prmatrix((MATRIX *)&p_env->screenMatrix);
+//   prmatrix((MATRIX *)&p_env->screenMatrix);
   
   updatePrim(p_env);
 }
