@@ -18,8 +18,10 @@
  * 
 */
 
-#include "ENGTYP.h"
+#ifndef ENGINE_H
+#define ENGINE_H
 
+#include "ENGTYP.h"
 
 #define SCREEN_WIDTH  320 // screen width
 #define	SCREEN_HEIGHT 240 // screen height
@@ -38,7 +40,7 @@ void display(struct s_environment *p_env);
 //populate textures
 void populateTextures(struct s_environment *p_env);
 //load a tim from CD, return address to load tim from in memory.
-void *loadFileFromCD(char *p_path, int *op_len);
+void *loadFileFromCD(char *p_path, uint32_t *op_len);
 //get objects from xml files
 struct s_primParam *getObjects(char *fileName);
 //cleanup primitives
@@ -53,3 +55,5 @@ void movPrim(struct s_environment *p_env);
 char *memoryCardRead(uint32_t len);
 //write to the memory card using data passed to it.
 void memoryCardWrite(char *p_phrase, uint32_t len);
+
+#endif

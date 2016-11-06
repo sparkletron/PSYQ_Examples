@@ -66,7 +66,7 @@ int findXMLblock(char const * const p_block);
 //gets content if attribute or element is found, puts data in stringBuffer, returns 0 if found, -1 if not
 int getXMLcontent();
 //finds vertex data out of the xml, 0 if found, -1 if not found
-int findVertex(struct s_vertex *p_vertex, char const * const p_vertexName);
+int findVertex(struct s_svertex *p_vertex, char const * const p_vertexName);
 //finds color data out of the xml, 0 if found, -1 if not found
 int findColor(struct s_color *color, char const * const p_colorName);
 //sets the current block data pointer so we can loop within the same block of data
@@ -426,7 +426,7 @@ int getXMLcontent()
 }
 
 //find vertex data, helps since this needs to happen 4 or more times
-int findVertex(struct s_vertex *p_vertex, char const * const p_vertexName)
+int findVertex(struct s_svertex *p_vertex, char const * const p_vertexName)
 {
   if(findXMLblock(p_vertexName) < 0)
   {
@@ -442,7 +442,7 @@ int findVertex(struct s_vertex *p_vertex, char const * const p_vertexName)
     return -1;
   }
   
-  p_vertex->x = atoi(g_parserData.stringBuffer);
+  p_vertex->vx = atoi(g_parserData.stringBuffer);
   
   resetXMLblock();
   
@@ -452,7 +452,7 @@ int findVertex(struct s_vertex *p_vertex, char const * const p_vertexName)
     return -1;
   }
   
-  p_vertex->y = atoi(g_parserData.stringBuffer);
+  p_vertex->vy = atoi(g_parserData.stringBuffer);
   
   resetXMLstart();
   

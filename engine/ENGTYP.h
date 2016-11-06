@@ -91,10 +91,26 @@ struct s_buffer
   DRAWENV draw;
 };
 
-struct s_vertex
+struct s_svertex
 {
-  int32_t x;
-  int32_t y;
+  int16_t vx;
+  int16_t vy;
+  int16_t vz;
+  int16_t pad;
+};
+
+struct s_lvertex
+{
+  int32_t vx;
+  int32_t vy;
+  int32_t vz;
+  int32_t pad;
+};
+
+struct s_matrix
+{
+  int16_t m[3][3];
+  int32_t t[3];
 };
 
 struct s_dimensions
@@ -123,8 +139,8 @@ struct s_texture
   
   char file[256];
   
-  struct s_vertex vertex0;
-  struct s_vertex vramVertex;
+  struct s_svertex vertex0;
+  struct s_svertex vramVertex;
   struct s_dimensions dimensions;
   struct s_tpage tpage;
   
@@ -133,12 +149,15 @@ struct s_texture
 
 struct s_primParam
 {
-  enum en_primType type; 
+  enum en_primType type;
   
-  struct s_vertex vertex0;
-  struct s_vertex vertex1;
-  struct s_vertex vertex2;
-  struct s_vertex vertex3;
+  struct s_lvertex transCoor;
+  struct s_svertex rotCoor;
+  
+  struct s_svertex vertex0;
+  struct s_svertex vertex1;
+  struct s_svertex vertex2;
+  struct s_svertex vertex3;
   
   struct s_color color0;
   struct s_color color1;
@@ -157,6 +176,10 @@ struct s_environment
   int otSize;
   int bufSize;
   int prevTime;
+  
+  struct s_matrix worldMatrix;
+  
+  struct s_matrix screenMatrix;
   
   struct s_primParam **p_primParam;
   
