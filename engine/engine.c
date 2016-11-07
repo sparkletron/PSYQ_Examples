@@ -376,21 +376,21 @@ void populateOT(struct s_environment *p_env)
 	  SetPolyF4((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data);
 	  setXYWH((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->vertex0.vx, p_env->p_primParam[index]->vertex0.vy, p_env->p_primParam[index]->dimensions.w, p_env->p_primParam[index]->dimensions.h);
 	  
-	  p_env->p_primParam[index]->vertex0.vz = 512;
+	  p_env->p_primParam[index]->vertex0.vz = 1024;
 	  
 	  p_env->p_primParam[index]->vertex1.vx = ((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data)->x1;
 	  p_env->p_primParam[index]->vertex1.vy = ((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data)->y1;
-	  p_env->p_primParam[index]->vertex1.vz = 512;
+	  p_env->p_primParam[index]->vertex1.vz = 1024;
 	  
 	  p_env->p_primParam[index]->vertex2.vx = ((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data)->x2;
 	  p_env->p_primParam[index]->vertex2.vy = ((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data)->y2;
-	  p_env->p_primParam[index]->vertex2.vz = 512;
+	  p_env->p_primParam[index]->vertex2.vz = 1024;
 	  
 	  p_env->p_primParam[index]->vertex3.vx = ((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data)->x3;
 	  p_env->p_primParam[index]->vertex3.vy = ((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data)->y3;
-	  p_env->p_primParam[index]->vertex3.vz = 512;
+	  p_env->p_primParam[index]->vertex3.vz = 1024;
 	  
-	  p_env->p_primParam[index]->transCoor.vz = 512;
+	  p_env->p_primParam[index]->transCoor.vz = 0;
 	  
 	  RotMatrix((SVECTOR *)&p_env->p_primParam[index]->rotCoor, (MATRIX *)&p_env->p_primParam[index]->matrix);
 	  TransMatrix((MATRIX *)&p_env->p_primParam[index]->matrix, (VECTOR *)&p_env->p_primParam[index]->transCoor);
