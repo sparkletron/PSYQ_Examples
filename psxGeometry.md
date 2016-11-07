@@ -45,6 +45,10 @@ This library allows you perform Geometry operations on polygons.
     This puts you at 0, as defined by the SetGeomScreen, so now any addition will bring you down, (z increases distance away from 1024).
 * Adding to Z sends it farther back. 
 * Camera on object also changes its coordinates at the moment, so an increase in z, decreases the area the object has to move (in relation to its origin).
+* Interpolation coefficient p, is used for interpolating colors. Seems like are max Z value is 4096?
+* According to page 142 of the Run-Time overview, "polygons deeper than P=4096 do no merge into the background, they are not drawn".
+* Also on page 452 of the Run-Time Reference guide, the return value of otz2p, which gets the interpolation value from p, can only be 0 to 4096.
+* otz value is always a quarted of the sz value (ordering table compression).
 
 ### Examples
 
