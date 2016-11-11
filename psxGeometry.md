@@ -21,6 +21,7 @@ This library allows you perform Geometry operations on polygons.
 ##### Functions
 * InitGeom(), Must be called first before doing any geometery operations  
 * RotMatrix... Many different types that creates a rotation matrix for the object based on its rotation angle (can be a vector)
+* ScaleMatrix(), Take a rotation matrix and scale it by a vector, the vector must set 1.0 as 4096.
 * TransMatrix(), Takes a matrix and a standard vector to set the amount of parallel transfer.
 * SetRotMatrix(), Set the constant rotate matrix to be used for rotation (must be set, or else all will be 0 (4096 is ONE, homogeneous?))
 * SetTransMatrix(), Set the const parallel transfer vector from a matrix.
