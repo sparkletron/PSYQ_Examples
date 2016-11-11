@@ -392,7 +392,12 @@ void populateOT(struct s_environment *p_env)
 	  
 	  p_env->p_primParam[index]->transCoor.vz = 0;
 	  
+	  p_env->p_primParam[index]->scaleCoor.vx = ONE;
+	  p_env->p_primParam[index]->scaleCoor.vy = ONE;
+	  p_env->p_primParam[index]->scaleCoor.vz = ONE;
+	  
 	  RotMatrix((SVECTOR *)&p_env->p_primParam[index]->rotCoor, (MATRIX *)&p_env->p_primParam[index]->matrix);
+	  //ScaleMatrix((MATRIX *)&p_env->p_primParam[index]->matrix, (VECTOR *)&p_env->p_primParam[index]->scaleCoor);
 	  TransMatrix((MATRIX *)&p_env->p_primParam[index]->matrix, (VECTOR *)&p_env->p_primParam[index]->transCoor);
 	  SetRotMatrix((MATRIX *)&p_env->p_primParam[index]->matrix);
 	  SetTransMatrix((MATRIX *)&p_env->p_primParam[index]->matrix);
@@ -565,6 +570,7 @@ void movPrim(struct s_environment *p_env)
 //   
 //   printf("\n%d %d\n", p_env->p_primParam[p_env->primCur]->transCoor.vx, p_env->p_primParam[p_env->primCur]->transCoor.vy);
   
+  
   if(p_env->gamePad.one.fourth.bit.circle == 0)
   {
     if(p_env->prevTime == 0 || ((VSync(-1) - p_env->prevTime) > 60))
@@ -578,9 +584,7 @@ void movPrim(struct s_environment *p_env)
   {
     if(p_env->prevTime == 0 || ((VSync(-1) - p_env->prevTime) > 60))
     {
-      p_env->p_primParam[p_env->primCur]->color0.r = rand() % 256;
-      p_env->p_primParam[p_env->primCur]->color0.g = rand() % 256;
-      p_env->p_primParam[p_env->primCur]->color0.b = rand() % 256;
+      p_env->p_primParam[p_env->primCur]->scaleCoor.vx += 128;
       p_env->prevTime = VSync(-1);
     }
   }
@@ -634,9 +638,12 @@ void movPrim(struct s_environment *p_env)
       p_env->p_primParam[p_env->primCur]->transCoor.vx -= 1;
     }
   }
-  
   RotMatrix((SVECTOR *)&p_env->p_primParam[p_env->primCur]->rotCoor, (MATRIX *)&p_env->p_primParam[p_env->primCur]->matrix);
+  ScaleMatrixL((MATRIX *)&p_env->p_primParam[p_env->primCur]->matrix, (VECTOR *)&p_env->p_primParam[p_env->primCur]->scaleCoor);
+  
+  prmatrix((MATRIX *)&p_env->p_primParam[p_env->primCur]->matrix);
   TransMatrix((MATRIX *)&p_env->p_primParam[p_env->primCur]->matrix, (VECTOR *)&p_env->p_primParam[p_env->primCur]->transCoor);
+  prmatrix((MATRIX *)&p_env->p_primParam[p_env->primCur]->matrix);
   
 //   prmatrix((MATRIX *)&p_env->screenMatrix);
   

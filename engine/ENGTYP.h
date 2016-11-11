@@ -152,6 +152,7 @@ struct s_primParam
   enum en_primType type;
   
   struct s_lvertex transCoor;
+  struct s_lvertex scaleCoor;
   struct s_svertex rotCoor;
   
   struct s_matrix matrix;
