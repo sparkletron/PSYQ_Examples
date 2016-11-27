@@ -22,6 +22,7 @@
 #include "engine.h"
 
 #include <libds.h>
+#include <libsio.h>
 #include <libpad.h>
 #include <libetc.h>
 #include <libgs.h>
@@ -58,11 +59,15 @@ void clearVRAM()
 {
   RECT vramArea;
   
+  printf("\nCLEARING VRAM\n");
+  
   setRECT(&vramArea, 0, 0, 1024, 512);
   
   ClearImage(&vramArea, 0, 0, 0);
   
   while(DrawSync(1));
+  
+  printf("\nDONE CLEARING VRAM\n");
 }
 
 //available functions
@@ -104,7 +109,6 @@ void initEnv(struct s_environment *p_env, int numPrim)
   //reset graphics
   ResetCallback();
   ResetGraph(0);
-  clearVRAM();
 
   //setup graphics double buffering 
   SetDefDispEnv(&p_env->buffer[0].disp, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -128,10 +132,6 @@ void initEnv(struct s_environment *p_env, int numPrim)
   //set current buffer
   p_env->p_currBuffer = p_env->buffer;
   
-  //font print debug info
-  FntLoad(960, 256);
-  SetDumpFnt(FntOpen(5, 20, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 512));
-  
   //setup geometry
   InitGeom();
   
@@ -151,6 +151,14 @@ void initEnv(struct s_environment *p_env, int numPrim)
   
   //get prim data
   initGetPrimData();
+  
+  AddSIO(9600);
+  
+  clearVRAM();
+  
+  //font print debug info
+  FntLoad(960, 256);
+  SetDumpFnt(FntOpen(5, 20, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 512));
   
   //allow display to be seen
   SetDispMask(1); 
