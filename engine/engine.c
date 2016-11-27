@@ -513,9 +513,6 @@ void updatePrim(struct s_environment *p_env)
   int index;
   long depthCue;
   long flag;
-  short sxy[8];
-  
-  VECTOR v[4];
   
   for(index = 0; index < p_env->otSize; index++)
   {

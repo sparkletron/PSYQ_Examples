@@ -8,7 +8,7 @@
 * CCPSX.EXE, Compiler, windows exe
 * CPE2X.EXE, CPE to EXE converter, dos exe
 * CPE2XWIN.EXE, CPE to EXE converter from psxdev.net forums, win exe
-* PSYLIB.EXE, takes object files a creates static library, dos exe
+* PSYLIB.EXE, takes object files a creates static library, dos exe, or use the win exe version from psxdev.net forums (from a developer disc).
 * All win exe can be run with wine no problem, any dos exe must be run with dosemu or dosbox
   * Some tips in the readme.md of this project
   * sample makefile line:

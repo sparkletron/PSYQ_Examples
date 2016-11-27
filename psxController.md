@@ -9,70 +9,28 @@ Below is the way data is stored for the controller using PadInitDirect().
 ```
 struct s_gamePad
 {
-  union
-  {
-    struct
-    {
-      u_char one:1;
-      u_char two:1;
-      u_char three:1;
-      u_char four:1;
-      u_char five:1;
-      u_char six:1;
-      u_char seven:1;
-      u_char eight:1;
-    } bit;
-    struct
-    {
-      u_char status;
-    }byte;
- 
-  } first;
+  uint8_t status:8;
+
+  uint8_t recvSize:4;
+  uint8_t type:4;
   
-  union
-  {
-    struct
-    {
-      u_char recvSize:4;
-      u_char type:4;
-    } nibble;
-    u_char byte;
-    
-  } second;
-  
-  union
-  {
-    struct
-    {
-      u_char select:1;
-      u_char na2:1;
-      u_char na1:1;
-      u_char start:1;
-      u_char up:1;
-      u_char right:1;
-      u_char down:1;
-      u_char left:1;
-    } bit;
-    u_char byte;
-	  
-  } third;
-  
-  union
-  {
-    struct
-    {
-      u_char l2:1;
-      u_char r2:1;
-      u_char l1:1;
-      u_char r1:1;
-      u_char triangle:1;
-      u_char circle:1;
-      u_char ex:1;
-      u_char square:1;
-    } bit;
-    u_char byte;
-	  
-  } fourth;
+  uint8_t select:1;
+  uint8_t na2:1;
+  uint8_t na1:1;
+  uint8_t start:1;
+  uint8_t up:1;
+  uint8_t right:1;
+  uint8_t down:1;
+  uint8_t left:1;
+
+  uint8_t l2:1;
+  uint8_t r2:1;
+  uint8_t l1:1;
+  uint8_t r1:1;
+  uint8_t triangle:1;
+  uint8_t circle:1;
+  uint8_t ex:1;
+  uint8_t square:1;
 };
 ```
 

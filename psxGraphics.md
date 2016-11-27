@@ -160,69 +160,38 @@ Basic Graphics For the PlayStation, requires more setup, but its ordering tables
 ### Examples for Basic Graphics Library (libgte.h)
 #### Environment Struct
 ```
+//vertex is old, should be renamed to vector, left to save myself from rewriting (moved on to metis engine).
 enum en_primType {TYPE_F4, TYPE_FT4, TYPE_G4, TYPE_GT4, TYPE_SPRITE, TYPE_TILE};
 
 struct s_gamePad
 {
-  struct
-  {
-    struct
-    {
-      u_char status:8;
-    } byte;
-    
-  } first;
+  uint8_t status:8;
+
+  uint8_t recvSize:4;
+  uint8_t type:4;
   
-  union
-  {
-    struct
-    {
-      u_char recvSize:4;
-      u_char type:4;
-    } nibble;
-    u_char byte;
-    
-  } second;
-  
-  union
-  {
-    struct
-    {
-      u_char select:1;
-      u_char na2:1;
-      u_char na1:1;
-      u_char start:1;
-      u_char up:1;
-      u_char right:1;
-      u_char down:1;
-      u_char left:1;
-    } bit;
-    u_char byte;
-	  
-  } third;
-  
-  union
-  {
-    struct
-    {
-      u_char l2:1;
-      u_char r2:1;
-      u_char l1:1;
-      u_char r1:1;
-      u_char triangle:1;
-      u_char circle:1;
-      u_char ex:1;
-      u_char square:1;
-    } bit;
-    u_char byte;
-	  
-  } fourth;
+  uint8_t select:1;
+  uint8_t na2:1;
+  uint8_t na1:1;
+  uint8_t start:1;
+  uint8_t up:1;
+  uint8_t right:1;
+  uint8_t down:1;
+  uint8_t left:1;
+
+  uint8_t l2:1;
+  uint8_t r2:1;
+  uint8_t l1:1;
+  uint8_t r1:1;
+  uint8_t triangle:1;
+  uint8_t circle:1;
+  uint8_t ex:1;
+  uint8_t square:1;
 };
 
-struct s_timInfo
+struct s_xmlData
 {
-  u_short tpageID;
-  u_short clutID;
+  char string[256];
 };
 
 struct s_primitive
@@ -239,41 +208,102 @@ struct s_buffer
   DRAWENV draw;
 };
 
+struct s_svertex
+{
+  int16_t vx;
+  int16_t vy;
+  int16_t vz;
+  int16_t pad;
+};
+
+struct s_lvertex
+{
+  int32_t vx;
+  int32_t vy;
+  int32_t vz;
+  int32_t pad;
+};
+
+struct s_matrix
+{
+  int16_t m[3][3];
+  int32_t t[3];
+};
+
+struct s_dimensions
+{
+  uint32_t w;
+  uint32_t h;
+};
+
+struct s_color
+{
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+};
+
+struct s_tpage
+{
+  unsigned long *tag;
+  unsigned long code[2];
+};
+
+struct s_texture
+{
+  unsigned short id;
+  uint32_t size;
+  
+  char file[256];
+  
+  struct s_svertex vertex0;
+  struct s_svertex vramVertex;
+  struct s_dimensions dimensions;
+  struct s_tpage tpage;
+  
+  uint8_t *p_data;
+};
+
 struct s_primParam
 {
-  int px;
-  int py;
-  int pw;
-  int ph;
-  int tx;
-  int ty;
-  int tw;
-  int th;
-  int r0;
-  int g0;
-  int b0;
-  int r1;
-  int g1;
-  int b1;
-  int r2;
-  int g2;
-  int b2;
-  int r3;
-  int g3;
-  int b3;
   enum en_primType type;
-  DR_TPAGE tpage;
-  struct s_timInfo timInfo;
+  
+  struct s_lvertex transCoor;
+  struct s_lvertex scaleCoor;
+  struct s_svertex rotCoor;
+  
+  struct s_lvertex realCoor;
+  
+  struct s_matrix matrix;
+  
+  struct s_svertex vertex0;
+  struct s_svertex vertex1;
+  struct s_svertex vertex2;
+  struct s_svertex vertex3;
+  
+  struct s_color color0;
+  struct s_color color1;
+  struct s_color color2;
+  struct s_color color3;
+  
+  struct s_dimensions dimensions;
+  
+  struct s_texture *p_texture;
 };
 
 struct s_environment
 {
+  int primCur;
+  int primSize;
   int otSize;
   int bufSize;
-  
-  int curPrim;
-  
   int prevTime;
+  
+  struct s_primParam **p_primParam;
+  
+  struct s_buffer buffer[DOUBLE_BUF];
+  
+  struct s_buffer *p_currBuffer;
   
   struct 
   {
@@ -282,19 +312,15 @@ struct s_environment
     int  *p_data;
   } envMessage;
   
-  struct s_primParam *p_primParam;
-  
-  struct s_buffer buffer[DOUBLE_BUF];
-  
-  struct s_buffer *p_drawBuffer;
-  struct s_buffer *p_regBuffer;
-  
   struct
   {
     struct s_gamePad one;
     struct s_gamePad two;
   } gamePad;
+  
+  SpuCommonAttr soundAttr;
 };
+
 ```
 
 ##### Setup Graphics, double buffer and Ordering Table
@@ -464,60 +490,117 @@ void populateOT(struct s_environment *p_env)
 void updatePrim(struct s_environment *p_env)
 {
   int index;
+  long depthCue;
+  long flag;
   
   for(index = 0; index < p_env->otSize; index++)
   {
-    switch(p_env->p_regBuffer->p_primitive[index].type)
+    SetRotMatrix((MATRIX *)&p_env->p_primParam[index]->matrix);
+    SetTransMatrix((MATRIX *)&p_env->p_primParam[index]->matrix);
+    
+    switch(p_env->p_currBuffer->p_primitive[index].type)
     {
       case TYPE_SPRITE:
-	setXY0((SPRT *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].px, p_env->p_primParam[index].py);
-	setWH((SPRT *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].pw,  p_env->p_primParam[index].ph);
-	setUV0((SPRT *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].tx, p_env->p_primParam[index].ty);
-	setRGB0((SPRT *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r0, p_env->p_primParam[index].g0, p_env->p_primParam[index].b0);
+	RotTransPers((SVECTOR *)&p_env->p_primParam[index]->vertex0,
+		     (long *)&((SPRT *)p_env->p_currBuffer->p_primitive[index].data)->x0,
+		     &depthCue, &flag);
+	setWH((SPRT *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->dimensions.w,  p_env->p_primParam[index]->dimensions.h);
+	setUV0((SPRT *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->p_texture->vertex0.vx, p_env->p_primParam[index]->p_texture->vertex0.vy);
+	setRGB0((SPRT *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
 	break;
       case TYPE_TILE:
-	setXY0((TILE *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].px, p_env->p_primParam[index].py);
-	setWH((TILE *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].pw,  p_env->p_primParam[index].ph);
-	setRGB0((TILE *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r0, p_env->p_primParam[index].g0, p_env->p_primParam[index].b0);
+	RotTransPers((SVECTOR *)&p_env->p_primParam[index]->vertex0,
+		     (long *)&((TILE *)p_env->p_currBuffer->p_primitive[index].data)->x0,
+		     &depthCue, &flag);
+	setXY0((TILE *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->vertex0.vx, p_env->p_primParam[index]->vertex0.vy);
+	setWH((TILE *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->dimensions.w,  p_env->p_primParam[index]->dimensions.h);
+	setRGB0((TILE *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
 	break;
       case TYPE_F4:
-	setXYWH((POLY_F4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].px, p_env->p_primParam[index].py, p_env->p_primParam[index].pw, p_env->p_primParam[index].ph);
-	setRGB0((POLY_F4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r0, p_env->p_primParam[index].g0, p_env->p_primParam[index].b0);
+	RotTransPers4((SVECTOR *)&p_env->p_primParam[index]->vertex0, 
+		      (SVECTOR *)&p_env->p_primParam[index]->vertex1, 
+		      (SVECTOR *)&p_env->p_primParam[index]->vertex2, 
+		      (SVECTOR *)&p_env->p_primParam[index]->vertex3,
+		      (long *)&(((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x0),
+		      (long *)&(((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x1),
+		      (long *)&(((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x2),
+		      (long *)&(((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x3),
+		      &depthCue, &flag);
+	setRGB0((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
 	break;
       case TYPE_FT4:
-	setUVWH((POLY_FT4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].tx, p_env->p_primParam[index].ty, p_env->p_primParam[index].tw, p_env->p_primParam[index].th);
-	setXYWH((POLY_FT4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].px, p_env->p_primParam[index].py, p_env->p_primParam[index].pw, p_env->p_primParam[index].ph);
-	setRGB0((POLY_FT4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r0, p_env->p_primParam[index].g0, p_env->p_primParam[index].b0);
+	RotTransPers4((SVECTOR *)&p_env->p_primParam[index]->vertex0,
+		      (SVECTOR *)&p_env->p_primParam[index]->vertex1,
+		      (SVECTOR *)&p_env->p_primParam[index]->vertex2, 
+		      (SVECTOR *)&p_env->p_primParam[index]->vertex3,
+		      (long *)(&(((POLY_FT4 *)p_env->p_currBuffer->p_primitive[index].data)->x0)),
+		      (long *)(&(((POLY_FT4 *)p_env->p_currBuffer->p_primitive[index].data)->x1)),
+		      (long *)(&(((POLY_FT4 *)p_env->p_currBuffer->p_primitive[index].data)->x2)),
+		      (long *)(&(((POLY_FT4 *)p_env->p_currBuffer->p_primitive[index].data)->x3)),
+		      &depthCue, &flag);
+	setUVWH((POLY_FT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->p_texture->vertex0.vx, p_env->p_primParam[index]->p_texture->vertex0.vy, p_env->p_primParam[index]->p_texture->dimensions.w, p_env->p_primParam[index]->p_texture->dimensions.h);
+	setRGB0((POLY_FT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
 	break;
       case TYPE_G4:
-	setXYWH((POLY_G4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].px, p_env->p_primParam[index].py, p_env->p_primParam[index].pw, p_env->p_primParam[index].ph);       
-	setRGB0((POLY_G4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r0, p_env->p_primParam[index].g0, p_env->p_primParam[index].b0);
-	setRGB1((POLY_G4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r1, p_env->p_primParam[index].g1, p_env->p_primParam[index].b1);
-	setRGB2((POLY_G4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r2, p_env->p_primParam[index].g2, p_env->p_primParam[index].b2);
-	setRGB3((POLY_G4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r3, p_env->p_primParam[index].g3, p_env->p_primParam[index].b3);
+	RotTransPers4((SVECTOR *)&p_env->p_primParam[index]->vertex0, 
+		      (SVECTOR *)&p_env->p_primParam[index]->vertex1, 
+		      (SVECTOR *)&p_env->p_primParam[index]->vertex2, 
+		      (SVECTOR *)&p_env->p_primParam[index]->vertex3,
+		      (long *)&((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data)->x0,
+		      (long *)&((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data)->x1,
+		      (long *)&((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data)->x2,
+		      (long *)&((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data)->x3,
+		      &depthCue, &flag);      
+	setRGB0((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
+	setRGB1((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color1.r, p_env->p_primParam[index]->color1.g, p_env->p_primParam[index]->color1.b);
+	setRGB2((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color2.r, p_env->p_primParam[index]->color2.g, p_env->p_primParam[index]->color2.b);
+	setRGB3((POLY_G4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color3.r, p_env->p_primParam[index]->color3.g, p_env->p_primParam[index]->color3.b);
 	break;
       case TYPE_GT4:
-	setUVWH((POLY_GT4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].tx, p_env->p_primParam[index].ty, p_env->p_primParam[index].tw, p_env->p_primParam[index].th);
-	setXYWH((POLY_GT4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].px, p_env->p_primParam[index].py, p_env->p_primParam[index].pw, p_env->p_primParam[index].ph);      
-	setRGB0((POLY_GT4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r0, p_env->p_primParam[index].g0, p_env->p_primParam[index].b0);
-	setRGB1((POLY_GT4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r1, p_env->p_primParam[index].g1, p_env->p_primParam[index].b1);
-	setRGB2((POLY_GT4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r2, p_env->p_primParam[index].g2, p_env->p_primParam[index].b2);
-	setRGB3((POLY_GT4 *)p_env->p_regBuffer->p_primitive[index].data, p_env->p_primParam[index].r3, p_env->p_primParam[index].g3, p_env->p_primParam[index].b3);
+	RotTransPers4((SVECTOR *)&p_env->p_primParam[index]->vertex0, 
+		      (SVECTOR *)&p_env->p_primParam[index]->vertex1, 
+		      (SVECTOR *)&p_env->p_primParam[index]->vertex2, 
+		      (SVECTOR *)&p_env->p_primParam[index]->vertex3,
+		      (long *)&((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data)->x0,
+		      (long *)&((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data)->x1,
+		      (long *)&((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data)->x2,
+		      (long *)&((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data)->x3,
+		      &depthCue, &flag);
+	setUVWH((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->p_texture->vertex0.vx, p_env->p_primParam[index]->p_texture->vertex0.vy, p_env->p_primParam[index]->p_texture->dimensions.w, p_env->p_primParam[index]->p_texture->dimensions.h);    
+	setRGB0((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
+	setRGB1((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color1.r, p_env->p_primParam[index]->color1.g, p_env->p_primParam[index]->color1.b);
+	setRGB2((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color2.r, p_env->p_primParam[index]->color2.g, p_env->p_primParam[index]->color2.b);
+	setRGB3((POLY_GT4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color3.r, p_env->p_primParam[index]->color3.g, p_env->p_primParam[index]->color3.b);
 	break;
       default:
-	printf("\nUnknown Type for update at index %d %d\n", index, p_env->p_regBuffer->p_primitive[index].type);
+	printf("\nUnknown Type for update at index %d %d\n", index, p_env->p_currBuffer->p_primitive[index].type);
 	break;
     }
   }
 }
+```
+##### Move a primitive via translation
+```
+void transPrim(struct s_primParam *p_primParam)
+{
+  p_primParam->realCoor.vx = p_primParam->transCoor.vx - p_primParam->vertex0.vx;
+  p_primParam->realCoor.vy = p_primParam->transCoor.vy - p_primParam->vertex0.vy;
+  p_primParam->realCoor.vz = p_primParam->transCoor.vz;
+  
+  RotMatrix((SVECTOR *)&p_primParam->rotCoor, (MATRIX *)&p_primParam->matrix);
+  ScaleMatrixL((MATRIX *)&p_primParam->matrix, (VECTOR *)&p_primParam->scaleCoor);
+  TransMatrix((MATRIX *)&p_primParam->matrix, (VECTOR *)&p_primParam->realCoor);
+}
 
 void movPrim(struct s_environment *p_env)
-{  
+{ 
+  static int prevTime = 0;
+
   if(p_env->gamePad.one.fourth.bit.circle == 0)
   {
     if(p_env->prevTime == 0 || ((VSync(-1) - p_env->prevTime) > 60))
     {
-      p_env->curPrim = (p_env->curPrim + 1) % p_env->otSize;
+      p_env->primCur = (p_env->primCur + 1) % p_env->otSize;
       p_env->prevTime = VSync(-1);
     }
   }
@@ -526,46 +609,64 @@ void movPrim(struct s_environment *p_env)
   {
     if(p_env->prevTime == 0 || ((VSync(-1) - p_env->prevTime) > 60))
     {
-      p_env->p_primParam[p_env->curPrim].r0 = rand() % 256;
-      p_env->p_primParam[p_env->curPrim].g0 = rand() % 256;
-      p_env->p_primParam[p_env->curPrim].b0 = rand() % 256;
+      p_env->p_primParam[p_env->primCur]->scaleCoor.vx += 512;
+      p_env->p_primParam[p_env->primCur]->scaleCoor.vy += 512;
       p_env->prevTime = VSync(-1);
+    }
+  }
+  
+  if(p_env->gamePad.one.fourth.bit.triangle == 0)
+  {
+    if(prevTime == 0 || ((VSync(-1) - prevTime) > 5))
+    {
+      p_env->p_primParam[p_env->primCur]->rotCoor.vz += 128;
+      prevTime = VSync(-1);
+    }
+  }
+  
+  if(p_env->gamePad.one.fourth.bit.square == 0)
+  {
+    if(prevTime == 0 || ((VSync(-1) - prevTime) > 5))
+    {
+      p_env->p_primParam[p_env->primCur]->transCoor.vz += 32;
+      prevTime = VSync(-1);
     }
   }
   
   if(p_env->gamePad.one.third.bit.up == 0)
   {
-    if(p_env->p_primParam[p_env->curPrim].py > 0)
+    if(p_env->p_primParam[p_env->primCur]->transCoor.vy > 0)
     {
-      p_env->p_primParam[p_env->curPrim].py -= 1;
+      p_env->p_primParam[p_env->primCur]->transCoor.vy -= 1;
     }
   }
   
   if(p_env->gamePad.one.third.bit.right == 0)
   {
-    if((p_env->p_primParam[p_env->curPrim].px + p_env->p_primParam[p_env->curPrim].pw) < SCREEN_WIDTH)
+    if((p_env->p_primParam[p_env->primCur]->transCoor.vx + p_env->p_primParam[p_env->primCur]->dimensions.w) < SCREEN_WIDTH)
     {
-      p_env->p_primParam[p_env->curPrim].px += 1;
+      p_env->p_primParam[p_env->primCur]->transCoor.vx += 1;
     }
   }
   
   if(p_env->gamePad.one.third.bit.down == 0)
   {
-    if((p_env->p_primParam[p_env->curPrim].py + p_env->p_primParam[p_env->curPrim].ph) < SCREEN_HEIGHT)
+    if((p_env->p_primParam[p_env->primCur]->transCoor.vy + p_env->p_primParam[p_env->primCur]->dimensions.h) < SCREEN_HEIGHT)
     {
-      p_env->p_primParam[p_env->curPrim].py += 1;
+      p_env->p_primParam[p_env->primCur]->transCoor.vy += 1;
     }
   }
   
   if(p_env->gamePad.one.third.bit.left == 0)
   {
-    if(p_env->p_primParam[p_env->curPrim].px > 0)
+    if(p_env->p_primParam[p_env->primCur]->transCoor.vx > 0)
     {
-      p_env->p_primParam[p_env->curPrim].px -= 1;
+      p_env->p_primParam[p_env->primCur]->transCoor.vx -= 1;
     }
   }
+
+  transPrim(p_env->p_primParam[p_env->primCur]);
   
   updatePrim(p_env);
 }
 ```
-

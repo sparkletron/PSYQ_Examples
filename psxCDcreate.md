@@ -19,6 +19,8 @@
   * Adds licences as well (location must be specified).
   * Creates bin and cue.
 * Simply download, compile, and run mkpsxiso your.xml and it will generate your CD image.
+* mkpsxiso seems to use the exact path you use for placement as the path in the cue. This can cause issues
+  and you may have to change by hand (till I fix this and submit an update).
 
 [Forked Repo for Linux/Windows build with cmake](https://github.com/electroCupcake/mkpsxiso)
 

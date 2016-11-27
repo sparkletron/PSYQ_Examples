@@ -15,7 +15,7 @@
 * DsCommand() = Issue CDROM command (such as play, pause, skip, etc).
 
 #### Notes
-* File names have to have a ";1" after them in the quotes, no idea why yet.
+* File names have to have a ";1" after them in the quotes, this is the version of the file, it is always 1.
 
 ### Example
 
