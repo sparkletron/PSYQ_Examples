@@ -365,16 +365,33 @@ void populateOT(struct s_environment *p_env)
 	  setWH((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->dimensions.w,  p_env->p_primParam[index]->dimensions.h);
 	  setUV0((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->p_texture->vertex0.vx, p_env->p_primParam[index]->p_texture->vertex0.vy);
 	  setRGB0((SPRT *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
+	  	  
+	  p_env->p_primParam[index]->vertex0.vz = 1024;
+	  
+	  p_env->p_primParam[index]->transCoor.vz = 0;
+	  
+	  p_env->p_primParam[index]->scaleCoor.vx = ONE;
+	  p_env->p_primParam[index]->scaleCoor.vy = ONE;
+	  p_env->p_primParam[index]->scaleCoor.vz = ONE;
 	  break;
 	case TYPE_TILE:
 	  setTile((TILE *)p_env->buffer[buffIndex].p_primitive[index].data);
 	  setXY0((TILE *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->vertex0.vx, p_env->p_primParam[index]->vertex0.vy);
 	  setWH((TILE *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->dimensions.w,  p_env->p_primParam[index]->dimensions.h);
 	  setRGB0((TILE *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
+	  
+	  p_env->p_primParam[index]->vertex0.vz = 1024;
+	  
+	  p_env->p_primParam[index]->transCoor.vz = 0;
+	  
+	  p_env->p_primParam[index]->scaleCoor.vx = ONE;
+	  p_env->p_primParam[index]->scaleCoor.vy = ONE;
+	  p_env->p_primParam[index]->scaleCoor.vz = ONE;
 	  break;
 	case TYPE_F4:
 	  SetPolyF4((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data);
 	  setXYWH((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->vertex0.vx, p_env->p_primParam[index]->vertex0.vy, p_env->p_primParam[index]->dimensions.w, p_env->p_primParam[index]->dimensions.h);
+	  setRGB0((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
 	  
 	  p_env->p_primParam[index]->vertex0.vz = 1024;
 	  
@@ -395,20 +412,32 @@ void populateOT(struct s_environment *p_env)
 	  p_env->p_primParam[index]->scaleCoor.vx = ONE;
 	  p_env->p_primParam[index]->scaleCoor.vy = ONE;
 	  p_env->p_primParam[index]->scaleCoor.vz = ONE;
-	  
-	  RotMatrix((SVECTOR *)&p_env->p_primParam[index]->rotCoor, (MATRIX *)&p_env->p_primParam[index]->matrix);
-	  //ScaleMatrix((MATRIX *)&p_env->p_primParam[index]->matrix, (VECTOR *)&p_env->p_primParam[index]->scaleCoor);
-	  TransMatrix((MATRIX *)&p_env->p_primParam[index]->matrix, (VECTOR *)&p_env->p_primParam[index]->transCoor);
-	  SetRotMatrix((MATRIX *)&p_env->p_primParam[index]->matrix);
-	  SetTransMatrix((MATRIX *)&p_env->p_primParam[index]->matrix);
-	  
-	  setRGB0((POLY_F4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
 	  break;
 	case TYPE_FT4:
 	  SetPolyFT4((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data);
 	  setUVWH((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->p_texture->vertex0.vx, p_env->p_primParam[index]->p_texture->vertex0.vy, p_env->p_primParam[index]->p_texture->dimensions.w, p_env->p_primParam[index]->p_texture->dimensions.h);
 	  setXYWH((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->vertex0.vx, p_env->p_primParam[index]->vertex0.vy, p_env->p_primParam[index]->dimensions.w, p_env->p_primParam[index]->dimensions.h);
 	  setRGB0((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
+	  	  
+	  p_env->p_primParam[index]->vertex0.vz = 1024;
+	  
+	  p_env->p_primParam[index]->vertex1.vx = ((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->x1;
+	  p_env->p_primParam[index]->vertex1.vy = ((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->y1;
+	  p_env->p_primParam[index]->vertex1.vz = 1024;
+	  
+	  p_env->p_primParam[index]->vertex2.vx = ((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->x2;
+	  p_env->p_primParam[index]->vertex2.vy = ((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->y2;
+	  p_env->p_primParam[index]->vertex2.vz = 1024;
+	  
+	  p_env->p_primParam[index]->vertex3.vx = ((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->x3;
+	  p_env->p_primParam[index]->vertex3.vy = ((POLY_FT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->y3;
+	  p_env->p_primParam[index]->vertex3.vz = 1024;
+	  
+	  p_env->p_primParam[index]->transCoor.vz = 0;
+	  
+	  p_env->p_primParam[index]->scaleCoor.vx = ONE;
+	  p_env->p_primParam[index]->scaleCoor.vy = ONE;
+	  p_env->p_primParam[index]->scaleCoor.vz = ONE;
 	  break;
 	case TYPE_G4:
 	  SetPolyG4((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data);
@@ -417,6 +446,26 @@ void populateOT(struct s_environment *p_env)
 	  setRGB1((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color1.r, p_env->p_primParam[index]->color1.g, p_env->p_primParam[index]->color1.b);
 	  setRGB2((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color2.r, p_env->p_primParam[index]->color2.g, p_env->p_primParam[index]->color2.b);
 	  setRGB3((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color3.r, p_env->p_primParam[index]->color3.g, p_env->p_primParam[index]->color3.b);
+	  	  
+	  p_env->p_primParam[index]->vertex0.vz = 1024;
+	  
+	  p_env->p_primParam[index]->vertex1.vx = ((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data)->x1;
+	  p_env->p_primParam[index]->vertex1.vy = ((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data)->y1;
+	  p_env->p_primParam[index]->vertex1.vz = 1024;
+	  
+	  p_env->p_primParam[index]->vertex2.vx = ((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data)->x2;
+	  p_env->p_primParam[index]->vertex2.vy = ((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data)->y2;
+	  p_env->p_primParam[index]->vertex2.vz = 1024;
+	  
+	  p_env->p_primParam[index]->vertex3.vx = ((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data)->x3;
+	  p_env->p_primParam[index]->vertex3.vy = ((POLY_G4 *)p_env->buffer[buffIndex].p_primitive[index].data)->y3;
+	  p_env->p_primParam[index]->vertex3.vz = 1024;
+	  
+	  p_env->p_primParam[index]->transCoor.vz = 0;
+	  
+	  p_env->p_primParam[index]->scaleCoor.vx = ONE;
+	  p_env->p_primParam[index]->scaleCoor.vy = ONE;
+	  p_env->p_primParam[index]->scaleCoor.vz = ONE;
 	  break;
 	case TYPE_GT4:
 	  SetPolyGT4((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data);
@@ -426,11 +475,33 @@ void populateOT(struct s_environment *p_env)
 	  setRGB1((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color1.r, p_env->p_primParam[index]->color1.g, p_env->p_primParam[index]->color1.b);
 	  setRGB2((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color2.r, p_env->p_primParam[index]->color2.g, p_env->p_primParam[index]->color2.b);
 	  setRGB3((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data, p_env->p_primParam[index]->color3.r, p_env->p_primParam[index]->color3.g, p_env->p_primParam[index]->color3.b);
+	  	  
+	  p_env->p_primParam[index]->vertex0.vz = 1024;
+	  
+	  p_env->p_primParam[index]->vertex1.vx = ((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->x1;
+	  p_env->p_primParam[index]->vertex1.vy = ((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->y1;
+	  p_env->p_primParam[index]->vertex1.vz = 1024;
+	  
+	  p_env->p_primParam[index]->vertex2.vx = ((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->x2;
+	  p_env->p_primParam[index]->vertex2.vy = ((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->y2;
+	  p_env->p_primParam[index]->vertex2.vz = 1024;
+	  
+	  p_env->p_primParam[index]->vertex3.vx = ((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->x3;
+	  p_env->p_primParam[index]->vertex3.vy = ((POLY_GT4 *)p_env->buffer[buffIndex].p_primitive[index].data)->y3;
+	  p_env->p_primParam[index]->vertex3.vz = 1024;
+	  
+	  p_env->p_primParam[index]->transCoor.vz = 0;
+	  
+	  p_env->p_primParam[index]->scaleCoor.vx = ONE;
+	  p_env->p_primParam[index]->scaleCoor.vy = ONE;
+	  p_env->p_primParam[index]->scaleCoor.vz = ONE;
 	  break;
 	default:
 	  printf("\nERROR, NO TYPE DEFINED AT INDEX %d\n", index);
 	  break;
       }
+      
+      transPrim(p_env->p_primParam[index]);
       
       AddPrim(&(p_env->buffer[buffIndex].p_ot[index]), p_env->buffer[buffIndex].p_primitive[index].data);
     }
@@ -448,9 +519,11 @@ void updatePrim(struct s_environment *p_env)
   
   for(index = 0; index < p_env->otSize; index++)
   {
+    SetRotMatrix((MATRIX *)&p_env->p_primParam[index]->matrix);
+    SetTransMatrix((MATRIX *)&p_env->p_primParam[index]->matrix);
+    
     switch(p_env->p_currBuffer->p_primitive[index].type)
     {
-      
       case TYPE_SPRITE:
 	RotTransPers((SVECTOR *)&p_env->p_primParam[index]->vertex0,
 		     (long *)&((SPRT *)p_env->p_currBuffer->p_primitive[index].data)->x0,
@@ -468,9 +541,6 @@ void updatePrim(struct s_environment *p_env)
 	setRGB0((TILE *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
 	break;
       case TYPE_F4:
-	SetRotMatrix((MATRIX *)&p_env->p_primParam[index]->matrix);
-	SetTransMatrix((MATRIX *)&p_env->p_primParam[index]->matrix);
-	
 	RotTransPers4((SVECTOR *)&p_env->p_primParam[index]->vertex0, 
 		      (SVECTOR *)&p_env->p_primParam[index]->vertex1, 
 		      (SVECTOR *)&p_env->p_primParam[index]->vertex2, 
@@ -480,32 +550,6 @@ void updatePrim(struct s_environment *p_env)
 		      (long *)&(((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x2),
 		      (long *)&(((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x3),
 		      &depthCue, &flag);
-/*	RotTrans((SVECTOR *)&p_env->p_primParam[index]->vertex0, &v[0], &flag);
-	RotTrans((SVECTOR *)&p_env->p_primParam[index]->vertex1, &v[1], &flag);
-	RotTrans((SVECTOR *)&p_env->p_primParam[index]->vertex2, &v[2], &flag);
-	RotTrans((SVECTOR *)&p_env->p_primParam[index]->vertex3, &v[3], &flag);*/	
-// 	printf("\ndepthCue: %X Flag: %X", depthCue, flag);
-// 	printf("\nSVECTOR: %d %d %d", ((SVECTOR *)&p_env->p_primParam[index]->vertex0)->vx, ((SVECTOR *)&p_env->p_primParam[index]->vertex0)->vy, ((SVECTOR *)&p_env->p_primParam[index]->vertex0)->vz);
-// 	printf("\nSVECTOR: %d %d %d", ((SVECTOR *)&p_env->p_primParam[index]->vertex1)->vx, ((SVECTOR *)&p_env->p_primParam[index]->vertex1)->vy, ((SVECTOR *)&p_env->p_primParam[index]->vertex1)->vz);
-// 	printf("\nSVECTOR: %d %d %d", ((SVECTOR *)&p_env->p_primParam[index]->vertex2)->vx, ((SVECTOR *)&p_env->p_primParam[index]->vertex2)->vy, ((SVECTOR *)&p_env->p_primParam[index]->vertex2)->vz);
-// 	printf("\nSVECTOR: %d %d %d", ((SVECTOR *)&p_env->p_primParam[index]->vertex3)->vx, ((SVECTOR *)&p_env->p_primParam[index]->vertex3)->vy, ((SVECTOR *)&p_env->p_primParam[index]->vertex3)->vz);
-// 	printf("\nXY0: %d %d XY1: %d %d XY2: %d %d XY3: %d %d\n", sxy[0], sxy[1], sxy[2], sxy[3], sxy[4], sxy[5], sxy[6], sxy[7]);
-// 	printf("\nXY00: %d %d %d\n", v[0].vx, v[0].vy, v[0].vz);
-// 	printf("\nXY10: %d %d %d\n", v[1].vx, v[1].vy, v[1].vz);
-// 	printf("\nXY20: %d %d %d\n", v[2].vx, v[2].vy, v[2].vz);
-// 	printf("\nXY30: %d %d %d\n", v[3].vx, v[3].vy, v[3].vz);
-// 	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x0 = v[0].vx;
-// 	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->y0 = v[0].vy;
-// 	
-// 	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x1 = v[1].vx;
-// 	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->y1 = v[1].vy;
-// 	
-// 	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x2 = v[2].vx;
-// 	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->y2 = v[2].vy;
-// 	
-// 	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->x3 = v[3].vx;
-// 	((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data)->y3 = v[3].vy;
-	
 	setRGB0((POLY_F4 *)p_env->p_currBuffer->p_primitive[index].data, p_env->p_primParam[index]->color0.r, p_env->p_primParam[index]->color0.g, p_env->p_primParam[index]->color0.b);
 	break;
       case TYPE_FT4:
@@ -559,18 +603,21 @@ void updatePrim(struct s_environment *p_env)
   }
 }
 
+void transPrim(struct s_primParam *p_primParam)
+{
+  p_primParam->realCoor.vx = p_primParam->transCoor.vx - p_primParam->vertex0.vx;
+  p_primParam->realCoor.vy = p_primParam->transCoor.vy - p_primParam->vertex0.vy;
+  p_primParam->realCoor.vz = p_primParam->transCoor.vz;
+  
+  RotMatrix((SVECTOR *)&p_primParam->rotCoor, (MATRIX *)&p_primParam->matrix);
+  ScaleMatrixL((MATRIX *)&p_primParam->matrix, (VECTOR *)&p_primParam->scaleCoor);
+  TransMatrix((MATRIX *)&p_primParam->matrix, (VECTOR *)&p_primParam->realCoor);
+}
+
 void movPrim(struct s_environment *p_env)
 { 
   static int prevTime = 0;
-  
-//   printf("\n%d %d %d %d\n",((POLY_F4 *)p_env->p_currBuffer->p_primitive[p_env->primCur].data)->x0,
-// 			  ((POLY_F4 *)p_env->p_currBuffer->p_primitive[p_env->primCur].data)->x1,
-// 			  ((POLY_F4 *)p_env->p_currBuffer->p_primitive[p_env->primCur].data)->x2,
-// 			  ((POLY_F4 *)p_env->p_currBuffer->p_primitive[p_env->primCur].data)->x3);
-//   
-//   printf("\n%d %d\n", p_env->p_primParam[p_env->primCur]->transCoor.vx, p_env->p_primParam[p_env->primCur]->transCoor.vy);
-  
-  
+
   if(p_env->gamePad.one.fourth.bit.circle == 0)
   {
     if(p_env->prevTime == 0 || ((VSync(-1) - p_env->prevTime) > 60))
@@ -584,7 +631,8 @@ void movPrim(struct s_environment *p_env)
   {
     if(p_env->prevTime == 0 || ((VSync(-1) - p_env->prevTime) > 60))
     {
-      p_env->p_primParam[p_env->primCur]->scaleCoor.vx += 128;
+      p_env->p_primParam[p_env->primCur]->scaleCoor.vx += 512;
+      p_env->p_primParam[p_env->primCur]->scaleCoor.vy += 512;
       p_env->prevTime = VSync(-1);
     }
   }
@@ -638,14 +686,8 @@ void movPrim(struct s_environment *p_env)
       p_env->p_primParam[p_env->primCur]->transCoor.vx -= 1;
     }
   }
-  RotMatrix((SVECTOR *)&p_env->p_primParam[p_env->primCur]->rotCoor, (MATRIX *)&p_env->p_primParam[p_env->primCur]->matrix);
-  ScaleMatrixL((MATRIX *)&p_env->p_primParam[p_env->primCur]->matrix, (VECTOR *)&p_env->p_primParam[p_env->primCur]->scaleCoor);
-  
-  prmatrix((MATRIX *)&p_env->p_primParam[p_env->primCur]->matrix);
-  TransMatrix((MATRIX *)&p_env->p_primParam[p_env->primCur]->matrix, (VECTOR *)&p_env->p_primParam[p_env->primCur]->transCoor);
-  prmatrix((MATRIX *)&p_env->p_primParam[p_env->primCur]->matrix);
-  
-//   prmatrix((MATRIX *)&p_env->screenMatrix);
+
+  transPrim(p_env->p_primParam[p_env->primCur]);
   
   updatePrim(p_env);
 }

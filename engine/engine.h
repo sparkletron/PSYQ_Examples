@@ -49,6 +49,8 @@ void freeObjects(struct s_primParam **p_primParam);
 void populateOT(struct s_environment *p_env);
 //call to update the position of primitives if it has been altered
 void updatePrim(struct s_environment *p_env);
+//translate current primitive
+void transPrim(struct s_primParam *p_primParam);
 //simple move routine to keep primitives within the screen
 void movPrim(struct s_environment *p_env);
 //read from the memory card and return pointer to data

@@ -155,6 +155,8 @@ struct s_primParam
   struct s_lvertex scaleCoor;
   struct s_svertex rotCoor;
   
+  struct s_lvertex realCoor;
+  
   struct s_matrix matrix;
   
   struct s_svertex vertex0;

@@ -78,8 +78,8 @@ void animate(struct s_environment *p_env, int *op_prevTime, int sprite, int yoff
   {
     *op_prevTime = VSync(-1);
     
-    p_env->p_primParam[sprite]->p_texture->vertex0.y = yoffset;
-    p_env->p_primParam[sprite]->p_texture->vertex0.x = (p_env->p_primParam[sprite]->p_texture->vertex0.x + 64) % 256;
+    p_env->p_primParam[sprite]->p_texture->vertex0.vy = yoffset;
+    p_env->p_primParam[sprite]->p_texture->vertex0.vx = (p_env->p_primParam[sprite]->p_texture->vertex0.vx + 64) % 256;
   }
 }
 
@@ -94,6 +94,16 @@ void movSprite(struct s_environment *p_env)
     movAmount = 2;
     prevAnimTime--;
   }
+  
+  if(p_env->gamePad.one.fourth.bit.circle == 0)
+  {
+    if(prevTime == 0 || ((VSync(-1) - prevTime) > 5))
+    {
+      p_env->p_primParam[1]->scaleCoor.vx += 512;
+      p_env->p_primParam[1]->scaleCoor.vy += 512;
+      prevTime = VSync(-1);
+    }
+  }
    
   if(p_env->gamePad.one.fourth.bit.ex == 0)
   {
@@ -107,119 +117,122 @@ void movSprite(struct s_environment *p_env)
   }
   else if(p_env->gamePad.one.third.bit.up == 0)
   {
-    if(p_env->p_primParam[1]->vertex0.y > 0)
+    if(p_env->p_primParam[1]->transCoor.vy > 0)
     {
-      p_env->p_primParam[1]->vertex0.y -= movAmount;
+      p_env->p_primParam[1]->transCoor.vy -= movAmount;
       animate(p_env, &prevAnimTime, 1, 192);
     }
     else
     {
-      p_env->p_primParam[1]->p_texture->vertex0.x = 0;
+      p_env->p_primParam[1]->p_texture->vertex0.vx = 0;
     }
   }
   else if(p_env->gamePad.one.third.bit.right == 0)
   {
-    if((p_env->p_primParam[1]->vertex0.x + p_env->p_primParam[1]->dimensions.w) < SCREEN_WIDTH)
+    if((p_env->p_primParam[1]->transCoor.vx + p_env->p_primParam[1]->dimensions.w) < SCREEN_WIDTH)
     {
-      p_env->p_primParam[1]->vertex0.x += movAmount;
+      p_env->p_primParam[1]->transCoor.vx += movAmount;
       animate(p_env, &prevAnimTime, 1, 128);
     }
     else
     {
-      p_env->p_primParam[1]->p_texture->vertex0.x = 0;
+      p_env->p_primParam[1]->p_texture->vertex0.vx = 0;
     }
   }
   else if(p_env->gamePad.one.third.bit.down == 0)
   {
-    if((p_env->p_primParam[1]->vertex0.y + p_env->p_primParam[1]->dimensions.h) < SCREEN_HEIGHT)
+    if((p_env->p_primParam[1]->transCoor.vy + p_env->p_primParam[1]->dimensions.h) < SCREEN_HEIGHT)
     {
-      p_env->p_primParam[1]->vertex0.y += movAmount;
+      p_env->p_primParam[1]->transCoor.vy += movAmount;
       animate(p_env, &prevAnimTime, 1, 0);
     }
     else
     {
-      p_env->p_primParam[1]->p_texture->vertex0.x = 0;
+      p_env->p_primParam[1]->p_texture->vertex0.vx = 0;
     }
   }
   else if(p_env->gamePad.one.third.bit.left == 0)
   {
-    if(p_env->p_primParam[1]->vertex0.x > 0)
+    if(p_env->p_primParam[1]->transCoor.vx > 0)
     {
-      p_env->p_primParam[1]->vertex0.x -= movAmount;
+      p_env->p_primParam[1]->transCoor.vx -= movAmount;
       animate(p_env, &prevAnimTime, 1, 64);
     }
     else
     {
-      p_env->p_primParam[1]->p_texture->vertex0.x = 0;
+      p_env->p_primParam[1]->p_texture->vertex0.vx = 0;
     }
   }
   else
   {
-    p_env->p_primParam[1]->p_texture->vertex0.x = 0;
+    p_env->p_primParam[1]->p_texture->vertex0.vx = 0;
   }
   
+  transPrim(p_env->p_primParam[1]);
 }
 
 void movEnemy(struct s_environment *p_env)
 { 
   static int prevAnimTime = 0;
   
-  if((abs(p_env->p_primParam[1]->vertex0.y - p_env->p_primParam[0]->vertex0.y) + 25 < 50) && (abs(p_env->p_primParam[1]->vertex0.x - p_env->p_primParam[0]->vertex0.x) + 25 < 50))
+  if((abs(p_env->p_primParam[1]->transCoor.vy - p_env->p_primParam[0]->transCoor.vy) + 25 < 50) && (abs(p_env->p_primParam[1]->transCoor.vx - p_env->p_primParam[0]->transCoor.vx) + 25 < 50))
   {
-    p_env->p_primParam[2]->p_texture->vertex0.x = 0;
+    p_env->p_primParam[2]->p_texture->vertex0.vx = 0;
     return;
   }
 
-  if(p_env->p_primParam[1]->vertex0.y > p_env->p_primParam[2]->vertex0.y)
+  if(p_env->p_primParam[1]->transCoor.vy > p_env->p_primParam[2]->transCoor.vy)
   {
-    if((p_env->p_primParam[2]->vertex0.y + p_env->p_primParam[2]->dimensions.h) < SCREEN_HEIGHT)
+    if((p_env->p_primParam[2]->transCoor.vy + p_env->p_primParam[2]->dimensions.h) < SCREEN_HEIGHT)
     {
-      p_env->p_primParam[2]->vertex0.y += 1;
+      p_env->p_primParam[2]->transCoor.vy += 1;
       animate(p_env, &prevAnimTime, 2, 0);
     }
     else
     {
-      p_env->p_primParam[2]->p_texture->vertex0.x = 0;
+      p_env->p_primParam[2]->p_texture->vertex0.vx = 0;
     }
   }
-  else if(p_env->p_primParam[1]->vertex0.y < p_env->p_primParam[2]->vertex0.y)
+  else if(p_env->p_primParam[1]->transCoor.vy < p_env->p_primParam[2]->transCoor.vy)
   {
-    if(p_env->p_primParam[2]->vertex0.y > 0)
+    if(p_env->p_primParam[2]->transCoor.vy > 0)
     {
-      p_env->p_primParam[2]->vertex0.y -= 1;
+      p_env->p_primParam[2]->transCoor.vy -= 1;
       animate(p_env, &prevAnimTime, 2, 192);
     }
     else
     {
-      p_env->p_primParam[2]->p_texture->vertex0.x = 0;
+      p_env->p_primParam[2]->p_texture->vertex0.vx = 0;
     }
   } 
-  else if(p_env->p_primParam[1]->vertex0.x > p_env->p_primParam[2]->vertex0.x)
+  else if(p_env->p_primParam[1]->transCoor.vx > p_env->p_primParam[2]->transCoor.vx)
   {
-    if((p_env->p_primParam[2]->vertex0.x + p_env->p_primParam[2]->dimensions.w) < SCREEN_WIDTH)
+    if((p_env->p_primParam[2]->transCoor.vx + p_env->p_primParam[2]->dimensions.w) < SCREEN_WIDTH)
     {
-      p_env->p_primParam[2]->vertex0.x += 1;
+      p_env->p_primParam[2]->transCoor.vx += 1;
       animate(p_env, &prevAnimTime, 2, 128);
     }
     else
     {
-      p_env->p_primParam[2]->p_texture->vertex0.x = 0;
+      p_env->p_primParam[2]->p_texture->vertex0.vx = 0;
     }
   }
-  else if(p_env->p_primParam[1]->vertex0.x < p_env->p_primParam[2]->vertex0.x)
+  else if(p_env->p_primParam[1]->transCoor.vx < p_env->p_primParam[2]->transCoor.vx)
   {
-    if(p_env->p_primParam[2]->vertex0.x > 0)
+    if(p_env->p_primParam[2]->transCoor.vx > 0)
     {
-      p_env->p_primParam[2]->vertex0.x -= 1;
+      p_env->p_primParam[2]->transCoor.vx -= 1;
       animate(p_env, &prevAnimTime, 2, 64);
     }
     else
     {
-      p_env->p_primParam[2]->p_texture->vertex0.x = 0;
+      p_env->p_primParam[2]->p_texture->vertex0.vx = 0;
     }
   }
   else
   {
-    p_env->p_primParam[2]->p_texture->vertex0.x = 0;
+    p_env->p_primParam[2]->p_texture->vertex0.vx = 0;
   }
+  
+  transPrim(p_env->p_primParam[2]);
 }

@@ -66,7 +66,9 @@ int findXMLblock(char const * const p_block);
 //gets content if attribute or element is found, puts data in stringBuffer, returns 0 if found, -1 if not
 int getXMLcontent();
 //finds vertex data out of the xml, 0 if found, -1 if not found
-int findVertex(struct s_svertex *p_vertex, char const * const p_vertexName);
+int findLVertex(struct s_lvertex *p_vertex, char const * const p_vertexName);
+//finds vertex data out of the xml, 0 if found, -1 if not found
+int findSVertex(struct s_svertex *p_vertex, char const * const p_vertexName);
 //finds color data out of the xml, 0 if found, -1 if not found
 int findColor(struct s_color *color, char const * const p_colorName);
 //sets the current block data pointer so we can loop within the same block of data
@@ -174,7 +176,7 @@ struct s_primParam *getPrimData()
     }
   }
   
-  returnValue = findVertex(&p_primParam->vertex0, XML_VERTEX_0);
+  returnValue = findLVertex(&p_primParam->transCoor, XML_VERTEX_0);
   
   if(returnValue < 0)
   {
@@ -182,12 +184,6 @@ struct s_primParam *getPrimData()
     free(p_primParam);
     return NULL;
   }
-  
-  findVertex(&p_primParam->vertex1, XML_VERTEX_1);
-
-  findVertex(&p_primParam->vertex2, XML_VERTEX_2);
-  
-  findVertex(&p_primParam->vertex3, XML_VERTEX_3);
   
   returnValue = findColor(&p_primParam->color0, XML_COLOR_0);
   
@@ -224,6 +220,9 @@ struct s_primParam *getPrimData()
   
   p_primParam->dimensions.h = atoi(g_parserData.stringBuffer);
   
+  p_primParam->vertex0.vx = -(p_primParam->dimensions.w/2);
+  p_primParam->vertex0.vy = -(p_primParam->dimensions.h/2);
+  
   resetXMLstart();
   
   //get texture info
@@ -240,7 +239,7 @@ struct s_primParam *getPrimData()
       return NULL;
     }
     
-    returnValue = findVertex(&p_primParam->p_texture->vertex0, XML_VERTEX_0);
+    returnValue = findSVertex(&p_primParam->p_texture->vertex0, XML_VERTEX_0);
     
     if(returnValue < 0)
     {
@@ -251,7 +250,7 @@ struct s_primParam *getPrimData()
     
     resetXMLblock();
     
-    returnValue = findVertex(&p_primParam->p_texture->vramVertex, XML_VRAM);
+    returnValue = findSVertex(&p_primParam->p_texture->vramVertex, XML_VRAM);
     
     if(returnValue < 0)
     {
@@ -426,7 +425,41 @@ int getXMLcontent()
 }
 
 //find vertex data, helps since this needs to happen 4 or more times
-int findVertex(struct s_svertex *p_vertex, char const * const p_vertexName)
+int findSVertex(struct s_svertex *p_vertex, char const * const p_vertexName)
+{
+  if(findXMLblock(p_vertexName) < 0)
+  {
+    resetXMLstart();
+    return -1;
+  }
+ 
+  setXMLblock();
+ 
+  if(findXMLelem(XML_X_CORR) < 0)
+  {
+    resetXMLstart();
+    return -1;
+  }
+  
+  p_vertex->vx = atoi(g_parserData.stringBuffer);
+  
+  resetXMLblock();
+  
+  if(findXMLelem(XML_Y_CORR) < 0)
+  {
+    resetXMLstart();
+    return -1;
+  }
+  
+  p_vertex->vy = atoi(g_parserData.stringBuffer);
+  
+  resetXMLstart();
+  
+  return 0;
+}
+
+//find vertex data, helps since this needs to happen 4 or more times
+int findLVertex(struct s_lvertex *p_vertex, char const * const p_vertexName)
 {
   if(findXMLblock(p_vertexName) < 0)
   {

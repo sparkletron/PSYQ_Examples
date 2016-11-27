@@ -39,11 +39,11 @@ int main()
 void movUp(struct s_environment *p_env, int len)
 {
   int index;
-  if(p_env->p_primParam[0]->vertex0.y > 0)
+  if(p_env->p_primParam[0]->transCoor.vy > 0)
   {
     for(index = len - 2; index >= 0; index--)
     {
-      p_env->p_primParam[index]->vertex0.y -= 2 * (len - index - 1);
+      p_env->p_primParam[index]->transCoor.vy -= 2 * (len - index - 1);
     }
   }
 }
@@ -51,11 +51,11 @@ void movUp(struct s_environment *p_env, int len)
 void movDown(struct s_environment *p_env, int len)
 {
   int index;
-  if((p_env->p_primParam[0]->vertex0.y + p_env->p_primParam[0]->dimensions.h) < SCREEN_HEIGHT)
+  if((p_env->p_primParam[0]->transCoor.vy + p_env->p_primParam[0]->dimensions.h) < SCREEN_HEIGHT)
   {
     for(index = len - 2; index >= 0; index--)
     {
-      p_env->p_primParam[index]->vertex0.y += 2 * (len - index - 1);;
+      p_env->p_primParam[index]->transCoor.vy += 2 * (len - index - 1);;
     }
   }
 }
@@ -63,11 +63,11 @@ void movDown(struct s_environment *p_env, int len)
 void movLeft(struct s_environment *p_env, int len)
 {
   int index;
-  if(p_env->p_primParam[0]->vertex0.x > 0)
+  if(p_env->p_primParam[0]->transCoor.vx > 0)
   {
     for(index = len - 2; index >= 0; index--)
     {
-      p_env->p_primParam[index]->vertex0.x -= 2 * (len - index - 1);
+      p_env->p_primParam[index]->transCoor.vx -= 2 * (len - index - 1);
     }
   }
 }
@@ -75,11 +75,11 @@ void movLeft(struct s_environment *p_env, int len)
 void movRight(struct s_environment *p_env, int len)
 {
   int index;
-  if((p_env->p_primParam[0]->vertex0.x + p_env->p_primParam[0]->dimensions.w) < SCREEN_WIDTH)
+  if((p_env->p_primParam[0]->transCoor.vx + p_env->p_primParam[0]->dimensions.w) < SCREEN_WIDTH)
   {
     for(index = len - 2; index >= 0; index--)
     {
-      p_env->p_primParam[index]->vertex0.x += 2 * (len - index - 1);
+      p_env->p_primParam[index]->transCoor.vx += 2 * (len - index - 1);
     }
   }
 }
@@ -113,26 +113,31 @@ void movSqrTail(struct s_environment *p_env)
   {
     for(index = 0; index < 2; index++)
     {
-      if(p_env->p_primParam[p_env->primCur]->vertex0.x > SCREEN_WIDTH / 2 - 25)
+      if(p_env->p_primParam[p_env->primCur]->transCoor.vx > SCREEN_WIDTH / 2 - 25)
       {
 	movLeft(p_env, p_env->otSize);
       }
       
-      if(p_env->p_primParam[p_env->primCur]->vertex0.x  < SCREEN_WIDTH / 2 - 25)
+      if(p_env->p_primParam[p_env->primCur]->transCoor.vx  < SCREEN_WIDTH / 2 - 25)
       {
 	movRight(p_env, p_env->otSize);
       }
       
-      if(p_env->p_primParam[p_env->primCur]->vertex0.y < SCREEN_HEIGHT / 2 - 25)
+      if(p_env->p_primParam[p_env->primCur]->transCoor.vy < SCREEN_HEIGHT / 2 - 25)
       {
 	movDown(p_env, p_env->otSize);
       }
       
-      if(p_env->p_primParam[p_env->primCur]->vertex0.y > SCREEN_HEIGHT / 2 -25)
+      if(p_env->p_primParam[p_env->primCur]->transCoor.vy > SCREEN_HEIGHT / 2 - 25)
       {
 	movUp(p_env, p_env->otSize);
       }
     }
+  }
+  
+  for(index = p_env->otSize - 2; index >= 0; index--)
+  {
+    transPrim(p_env->p_primParam[index]);
   }
   
   updatePrim(p_env);
