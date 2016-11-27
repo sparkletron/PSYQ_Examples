@@ -1,0 +1,26 @@
+<ACTOR_PRIM type="TYPE_SPRITE">
+  <vertex0>
+    <x>130</x>
+    <y>100</y>
+  </vertex0>
+  <color0>
+    <red>127</red>
+    <green>127</green>
+    <blue>127</blue>
+  </color0>
+  <width>64</width>
+  <height>64</height>
+  <texture>
+    <vertex0>
+      <x>0</x>
+      <y>0</y>
+    <vertex0>
+    <vramVertex>
+      <x>320</x>
+      <y>256</y>
+    </vramVertex>
+    <twidth>256</twidth>
+    <theight>256</theight>
+    <file>\\SPRITE.BMP;1</file>
+  </texture>
+</ACTOR_PRIM>

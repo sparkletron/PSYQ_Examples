@@ -1,0 +1,13 @@
+<ACTOR_PRIM type="TYPE_G4">
+  <vertex0>
+    <x>135</x>
+    <y>95</y>
+  </vertex0>
+  <color0>
+    <red>255</red>
+    <green>0</green>
+    <blue>255</blue>
+  </color0>
+  <width>50</width>
+  <height>50</height>
+</ACTOR_PRIM>
