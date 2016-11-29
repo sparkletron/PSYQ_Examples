@@ -137,7 +137,7 @@ void movSqrTail(struct s_environment *p_env)
   
   for(index = p_env->otSize - 2; index >= 0; index--)
   {
-    transPrim(p_env->p_primParam[index]);
+    transPrim(p_env->p_primParam[index], p_env);
   }
   
   updatePrim(p_env);

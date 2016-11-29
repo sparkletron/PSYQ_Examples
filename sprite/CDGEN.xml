@@ -87,6 +87,13 @@
 			<file name="SAND.XML" type="data" source="XML/SAND.XML"/>
 			<file name="SPRITE.XML" type="data" source="XML/SPRITE.XML"/>
 			<file name="ESPRITE.XML" type="data" source="XML/ESPRITE.XML"/>
+			<file name="SQ1.XML" type="data" source="XML/SQ1.XML"/>
+			<file name="SQ2.XML" type="data" source="XML/SQ2.XML"/>
+			<file name="SQ3.XML" type="data" source="XML/SQ3.XML"/>
+			<file name="SQ4.XML" type="data" source="XML/SQ4.XML"/>
+			<file name="SQ5.XML" type="data" source="XML/SQ5.XML"/>
+			<file name="SQ6.XML" type="data" source="XML/SQ6.XML"/>
+			<file name="SQ7.XML" type="data" source="XML/SQ7.XML"/>
 			<file name="SAND.BMP" type="data" source="IMG/sand.bmp"/>
 			<file name="SPRITE.BMP" type="data" source="IMG/sprite.bmp"/>
 			<file name="ESPRITE.BMP" type="data" source="IMG/esprite.bmp"/>

@@ -78,6 +78,7 @@ void initEnv(struct s_environment *p_env, int numPrim)
   int bufIndex;
   
   //setup struct
+  memset(p_env, 0, sizeof(*p_env));
   p_env->bufSize = DOUBLE_BUF;
   p_env->otSize = (numPrim < 1 ? 1 : numPrim);
   p_env->primSize = p_env->otSize;
@@ -560,7 +561,7 @@ void populateOT(struct s_environment *p_env)
 	  break;
       }
       
-      transPrim(p_env->p_primParam[index]);
+      transPrim(p_env->p_primParam[index], p_env);
       
       AddPrim(&(p_env->buffer[buffIndex].p_ot[index]), p_env->buffer[buffIndex].p_primitive[index].data);
     }
@@ -661,10 +662,10 @@ void updatePrim(struct s_environment *p_env)
 }
 
 //use the abstract primitive to generate its native sister primitives updated coordinates
-void transPrim(struct s_primParam *p_primParam)
+void transPrim(struct s_primParam *p_primParam, struct s_environment *p_env)
 {
-  p_primParam->realCoor.vx = p_primParam->transCoor.vx - p_primParam->vertex0.vx;
-  p_primParam->realCoor.vy = p_primParam->transCoor.vy - p_primParam->vertex0.vy;
+  p_primParam->realCoor.vx = p_primParam->transCoor.vx - p_primParam->vertex0.vx - p_env->screenCoor.vx;
+  p_primParam->realCoor.vy = p_primParam->transCoor.vy - p_primParam->vertex0.vy - p_env->screenCoor.vy;
   p_primParam->realCoor.vz = p_primParam->transCoor.vz;
   
   RotMatrix((SVECTOR *)&p_primParam->rotCoor, (MATRIX *)&p_primParam->matrix);
@@ -746,7 +747,7 @@ void movPrim(struct s_environment *p_env)
     }
   }
 
-  transPrim(p_env->p_primParam[p_env->primCur]);
+  transPrim(p_env->p_primParam[p_env->primCur], p_env);
   
   updatePrim(p_env);
 }

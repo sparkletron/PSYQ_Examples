@@ -182,6 +182,8 @@ struct s_environment
   int bufSize;
   int prevTime;
   
+  struct s_lvertex screenCoor;
+  
   struct s_primParam **p_primParam;
   
   struct s_buffer buffer[DOUBLE_BUF];

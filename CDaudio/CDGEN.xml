@@ -94,7 +94,7 @@
 			
 		</directory_tree>
 		
-	</track>silence.wav
+	</track>
         
 	<track type="audio" source="AUDIO/silence.wav"/>
         <track type="audio" source="AUDIO/herb.wav"/>

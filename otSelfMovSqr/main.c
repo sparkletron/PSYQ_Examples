@@ -110,7 +110,7 @@ void movChase(struct s_environment *p_env)
     }
   }
   
-  transPrim(p_env->p_primParam[0]);
+  transPrim(p_env->p_primParam[0], p_env);
 }
 
 void movPlayer(struct s_environment *p_env)
@@ -147,5 +147,5 @@ void movPlayer(struct s_environment *p_env)
     }
   }
   
-  transPrim(p_env->p_primParam[1]);
+  transPrim(p_env->p_primParam[1], p_env);
 }
