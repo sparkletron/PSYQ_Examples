@@ -29,11 +29,21 @@ Toolkit is PSYQ, available at [psxdev.net](http://www.psxdev.net/downloads.html)
 PlayStation (WINDOWS XP SP3)
 
 	Psy-Q SDK from psxdev.net
+	Windows Reg File
+	PSYLIB win version
+	CPE2X win version
+	mkpsxiso
+	STDINT.h
 	MinGW
 	
 PlayStation (KUBUNTU 14.04)
 
 	Psy-Q SDK from psxdev.net
+	Windows Reg File
+	PSYLIB win version
+	CPE2X win version
+	mkpsxiso
+	STDINT.h
 	WINE
 	BUILD_ESSENTIALS
 
@@ -49,6 +59,8 @@ PlayStation (KUBUNTU 14.04)
    4. [CPE2X.EXE windows version ... psxdev.net/forum](http://www.psxdev.net/forum/viewtopic.php?f=53&t=225)
    
    5. [mkpsxiso by Lameguy64 ... github.com](https://github.com/Lameguy64/mkpsxiso)
+   
+   6. [STDINT.h by John Convertino ... github.com](https://github.com/electroCupcake/PSYQ_Examples/tree/master/PSYQ_MODS)
 
 Linux using WINE
 
@@ -60,22 +72,25 @@ Linux using WINE
 	6. Copy CPE2X.EXE into pysq/bin, rename it to CPE2XWIN.EXE
 	7. Build mkpsxiso using cmake/make (follow the readme in the repo)
 	9. Copy mkpsxiso into psyq/bin
-	10. Install pcsx
-	11. Execute pcsx
-	12. Add a bios file to pcsx
-	13. Tell pcsx to use the file
+	11. From this repository folder PSY_MODS copy STDINT.h to psyq/include
+	12. Install pcsx
+	13. Execute pcsx
+	14. Add a bios file to pcsx (or just use the HLE bios, it works fine)
+	15. Add psyq paths to your .bashrc, paths are below.
+	16. make will now build the executables.
+	17. mkpsxiso will build the ISO image
+	    * You will have to change the license path, since it is included in pysq under your user name.
+	    * Edit with any normal text editior
 
 ### Basic Tool Setup
-
-#### ${YOUR_USERNAME} should be replace with your user name.
 
 #### .bashrc
 ```
 ## Paths
 #psy-q psx compile tools
-export PATH=/home/${YOUR_USERNAME}/.wine/drive_c/psyq/bin:$PATH
-export PATH=/home/${YOUR_USERNAME}/.wine/drive_c/psyq/cdemu/BIN/:$PATH
-export PATH=/home/${YOUR_USERNAME}/.wine/drive_c/psyq/bin/TIMTOOL:$PATH
+export PATH=/home/$USER/.wine/drive_c/psyq/bin:$PATH
+export PATH=/home/$USER/.wine/drive_c/psyq/cdemu/BIN/:$PATH
+export PATH=/home/$USER/.wine/drive_c/psyq/bin/TIMTOOL:$PATH
 ```
 
 ### Notes
