@@ -1,7 +1,7 @@
 /*
- * Started on: 10/21/2016
- * 
+ * Started: 10/21/2016
  * By: John Convertino
+ * electrobs@gmail.com
  * 
  * Library for getting primitive data in a cross platform manner. 
  * 

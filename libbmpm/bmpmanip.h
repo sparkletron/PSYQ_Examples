@@ -1,5 +1,8 @@
 /*
- *
+ * Started: 10/21/2016
+ * By: John Convertino
+ * electrobs@gmail.com
+ * 
  * functions to manipulate bitmaps.
  * 
  * This is for 15 bit RGB only (+1 for semiTrans, 16 bit total).

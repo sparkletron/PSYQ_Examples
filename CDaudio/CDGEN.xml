@@ -86,12 +86,12 @@
 			<file name="MAIN.exe"	type="data"	source="audioTest.exe"/>
 			<file name="TEXTURE.XML" type="data" source="XML/TEXTURE.XML"/>
 			<file name="YAKKO.BMP" type="data" source="IMG/YAKKO.BMP"/>
+			<dummy sectors="1024"/>
 			
 			<!-- <dir>
 					Specifies a directory in the directory tree. <file> and <dir> elements inside the element
 					will be inside the specified directory.
 			-->
-			
 		</directory_tree>
 		
 	</track>

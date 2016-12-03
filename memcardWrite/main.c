@@ -1,8 +1,9 @@
 /*
  * Written By: John Convertino
  * 
- * Memory Card Read example, will read the phrase written my the memcardWrite example.
-*/
+ * Memory Card Write example, will write the phrase tp be read by the memcardRead example.
+ * 
+ */
 
 #include "engine.h"
 
@@ -13,7 +14,7 @@ int main()
   int len = 0;
   struct s_environment environment;
   
-  initEnv(&environment, 0); // setup the graphics (seen below)
+  initEnv(&environment, 0);
   
   len = strlen(p_message);
   
@@ -23,7 +24,7 @@ int main()
   
   memoryCardWrite(p_message, strlen(p_message));
 
-  while (1) // draw and display forever
+  for(;;)
   {
     display(&environment);
   }

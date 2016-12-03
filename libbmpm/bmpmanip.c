@@ -1,8 +1,13 @@
 /*
+ * Started: 10/21/2016
+ * By: John Convertino
+ * electrobs@gmail.com
  *
- *
- *
+ * Source for bitmap manip, see header for details.
+ * 
+ * 
  */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -91,8 +96,10 @@ int bitmapToRAW(uint8_t **op_data, int len, int width, int height)
     case 0:
       break;
     default:
+      //copy data, excluding header
       memmove(*op_data, &((*op_data)[returnValue]), len - returnValue);
       p_temp = realloc(*op_data, len - returnValue);
+      //reverse bitmap data, its in the wrong order for raw image data
       if(p_temp != NULL)
       {
 	*op_data = p_temp;
@@ -113,6 +120,7 @@ int bitmapToRAW(uint8_t **op_data, int len, int width, int height)
   
 }
 
+//swap read and blue since TIM and BMP are swapped
 int swapRedBlue(uint8_t *op_data, int len)
 {
   int index = 0;
@@ -127,6 +135,7 @@ int swapRedBlue(uint8_t *op_data, int len)
     return -1;
   }
   
+  //cross platform and explicit, not a fast way of doing this.
   for(index = returnValue; index < len; index += 2)
   {
     uint8_t top = 0;
@@ -240,6 +249,7 @@ void setTransBit(uint8_t *op_data, uint8_t red, uint8_t green, uint8_t blue, uin
   }
 }
 
+//reverse data, aka if there are 3 bytes, 0 and 2 would be swapped, 1 would stay the same.
 int reverseData(uint8_t *op_data, int len, int width, int height)
 {
   int index;

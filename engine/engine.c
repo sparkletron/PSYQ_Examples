@@ -1,5 +1,8 @@
 /*
- * Written By: John Convertino
+ * Started: 10/01/2016
+ * By: John Convertino
+ * electrobs@gmail.com
+ * 
  * 
  * Primitive engine, simple methods for getting primitives on screen, along with some other neat features.
  * 
@@ -12,7 +15,6 @@
  * 
  * Can NOT Do:
  * 	-3D
- * 	-Sound
  * 
  * Version: 1.0
  * 

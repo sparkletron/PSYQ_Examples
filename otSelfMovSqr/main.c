@@ -5,12 +5,15 @@
  * 
  * Change color with x, move with the D-PAD.
  * 
-*/
+ */
 
 #include "engine.h"
 
+//create game objects
 void createGameObjects(struct s_environment *p_env);
+//move routine for chasing block
 void movChase(struct s_environment *p_env);
+//move routine for player block
 void movPlayer(struct s_environment *p_env);
 
 int main() 
@@ -18,7 +21,7 @@ int main()
   char *p_title = "Ordering Table Example\nAtari Attack";
   struct s_environment environment;
   
-  initEnv(&environment, 2); // setup the graphics (seen below)
+  initEnv(&environment, 2);
 
   createGameObjects(&environment);
   
@@ -28,7 +31,7 @@ int main()
   
   populateOT(&environment);
 
-  while (1) // draw and display forever
+  for(;;)
   {
     movChase(&environment);
     movPlayer(&environment);
@@ -39,18 +42,22 @@ int main()
   return 0;
 }
 
+//create game objects
 void createGameObjects(struct s_environment *p_env)
 {
   int index;
   int buffIndex;
+  //list of files to read
   char *fileNames[] = {"\\SQ1.XML;1", "\\SQ2.XML;1"};
 
   for(index = 0; index < p_env->otSize; index++)
   {
+    //get object details from the file
     p_env->p_primParam[index] = getObjects(fileNames[index]);
 
     if(p_env->p_primParam[index] != NULL)
     {
+      //for each buffer create a primitive for each object
       for(buffIndex = 0; buffIndex < p_env->bufSize; buffIndex++)
       {
 	p_env->buffer[buffIndex].p_primitive[index].data = calloc(1, sizeof(POLY_F4));
@@ -59,13 +66,16 @@ void createGameObjects(struct s_environment *p_env)
   }
 }
 
+//move chase block to chase the other block on scree.
 void movChase(struct s_environment *p_env)
 { 
+  //if we are in a certain area, stop moving
   if((abs(p_env->p_primParam[1]->transCoor.vy - p_env->p_primParam[0]->transCoor.vy) + 25 < 50) && (abs(p_env->p_primParam[1]->transCoor.vx - p_env->p_primParam[0]->transCoor.vx) + 25 < 50))
   {
     return;
   }
   
+  //change color if we are very close
   if((abs(p_env->p_primParam[1]->transCoor.vy - p_env->p_primParam[0]->transCoor.vy) + 25 < 75) && (abs(p_env->p_primParam[1]->transCoor.vx - p_env->p_primParam[0]->transCoor.vx) + 25 < 75))
   {
     p_env->p_primParam[0]->color0.r = 255;
@@ -79,7 +89,7 @@ void movChase(struct s_environment *p_env)
     p_env->p_primParam[0]->color0.b = 255;
   }
   
-
+  //move based upon the other blocks position in the vertical.
   if(p_env->p_primParam[1]->transCoor.vy > p_env->p_primParam[0]->transCoor.vy)
   {
     if((p_env->p_primParam[0]->transCoor.vy + p_env->p_primParam[0]->dimensions.h) < SCREEN_HEIGHT)
@@ -95,6 +105,7 @@ void movChase(struct s_environment *p_env)
     }
   }
   
+  //move based upon the other blocks position in the horizontal
   if(p_env->p_primParam[1]->transCoor.vx > p_env->p_primParam[0]->transCoor.vx)
   {
     if((p_env->p_primParam[0]->transCoor.vx + p_env->p_primParam[0]->dimensions.w) < SCREEN_WIDTH)
@@ -113,6 +124,7 @@ void movChase(struct s_environment *p_env)
   transPrim(p_env->p_primParam[0], p_env);
 }
 
+//move player based on controller input
 void movPlayer(struct s_environment *p_env)
 {  
   if(p_env->gamePad.one.third.bit.up == 0)

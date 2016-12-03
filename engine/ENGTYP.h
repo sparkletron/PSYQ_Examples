@@ -1,4 +1,8 @@
-/*
+/* 
+ * Started: 10/01/2016
+ * By: John Convertino
+ * electrobs@gmail.com
+ * 
  * Engine Types
  */
 
