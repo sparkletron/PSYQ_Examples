@@ -72,13 +72,10 @@ Linux using WINE
 	6. Copy CPE2X.EXE into pysq/bin, rename it to CPE2XWIN.EXE
 	7. Build mkpsxiso using cmake/make (follow the readme in the repo)
 	9. Copy mkpsxiso into psyq/bin
-	11. From this repository folder PSY_MODS copy STDINT.h to psyq/include
-	12. Install pcsx
-	13. Execute pcsx
-	14. Add a bios file to pcsx (or just use the HLE bios, it works fine)
-	15. Add psyq paths to your .bashrc, paths are below.
-	16. make will now build the executables.
-	17. mkpsxiso will build the ISO image
+	11. From the PSY_MODS folder in this repository, copy STDINT.h to psyq/include
+	12. Add psyq paths to your .bashrc, paths are below.
+	13. make will now build the executables.
+	14. mkpsxiso will build the ISO image
 	    * You will have to change the license path, since it is included in pysq under your user name.
 	    * Edit with any normal text editior
 
