@@ -99,7 +99,7 @@ void initEnv(struct s_environment *p_env, int numPrim)
   p_env->p_primParam = calloc(p_env->otSize, sizeof(struct s_primParam));
   
   // within the BIOS, if the address 0xBFC7FF52 equals 'E', set it as PAL (1). Otherwise, set it as NTSC (0)
-  switch(*(char *)0xbfc7ff52=='E')
+  switch(*(char *)0xbfc7ff52)
   {
     case 'E':
       SetVideoMode(MODE_PAL); 
