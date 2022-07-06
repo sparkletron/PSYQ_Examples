@@ -67,17 +67,17 @@ Linux using WINE
 
 	1. Install WINE
 	2. Install wine-binfmt
-	2. Initialize WINE (winecfg works well for this)
-	3. Copy psyq directory to wine drive_c directory
-	4. Use the command "wine regedit" to import reg file
-	5. Copy psylib into psyq/bin (overwrite the old one or rename the old one)
-	6. Copy CPE2X.EXE into pysq/bin, rename it to CPE2XWIN.EXE
-	7. Build mkpsxiso using cmake/make (follow the readme in the repo)
+	3. Initialize WINE (winecfg works well for this)
+	4. Copy psyq directory to wine drive_c directory
+	5. Use the command "wine regedit" to import reg file
+	6. Copy psylib into psyq/bin (overwrite the old one or rename the old one)
+	7. Copy CPE2X.EXE into pysq/bin, rename it to CPE2XWIN.EXE
+	8. Build mkpsxiso using cmake/make (follow the readme in the repo)
 	9. Copy mkpsxiso into psyq/bin
-	11. From the PSY_MODS folder in this repository, copy STDINT.h to psyq/include
-	12. Add psyq paths to your .bashrc, paths are below.
-	13. make will now build the executables.
-	14. mkpsxiso will build the ISO image
+	10. From the PSY_MODS folder in this repository, copy STDINT.h to psyq/include
+	11. Add psyq paths to your .bashrc, paths are below.
+	12. make will now build the executables.
+	13. mkpsxiso will build the ISO image
 	    * You will have to change the license path, since it is included in pysq under your user name.
 	    * Edit with any normal text editior
 
