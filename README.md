@@ -36,7 +36,7 @@ PlayStation (WINDOWS XP SP3)
 	STDINT.h
 	MinGW
 	
-PlayStation (KUBUNTU 14.04)
+PlayStation (KUBUNTU ~~14.04~~ 22.04)
 
 	Psy-Q SDK from psxdev.net
 	Windows Reg File
@@ -45,6 +45,7 @@ PlayStation (KUBUNTU 14.04)
 	mkpsxiso
 	STDINT.h
 	WINE
+	WINE-BINFMT
 	BUILD_ESSENTIALS
 
 ### Library Install Directions
@@ -65,6 +66,7 @@ PlayStation (KUBUNTU 14.04)
 Linux using WINE
 
 	1. Install WINE
+	2. Install wine-binfmt
 	2. Initialize WINE (winecfg works well for this)
 	3. Copy psyq directory to wine drive_c directory
 	4. Use the command "wine regedit" to import reg file
